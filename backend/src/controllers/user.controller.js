@@ -1,21 +1,22 @@
 "use strict";
 import {
-  deleteUserService,
-  getUserService,
-  getUsersService,
-  updateUserService,
-} from "../services/user.service.js";
-import {
-  getMarcadorByUserService,
-  updateMarcadorByUserService,
-} from "../services/marcador.service.js";
-import {
   userBodyValidation,
   userQueryValidation,
 } from "../validations/user.validation.js";
 import {
   marcadorUpdateValidation,
 } from "../validations/marcador.validation.js";
+import {
+  getUserService,
+  getUsersService,
+  updateUserService,
+  deleteUserService,
+} from "../services/user.service.js";
+import {
+  getMarcadorByUserService,
+  updateMarcadorByUserService,
+  getAllMarcadoresService,
+} from "../services/marcador.service.js";
 import {
   handleErrorClient,
   handleErrorServer,
@@ -189,6 +190,18 @@ export async function updateMarcador(req, res) {
     if (errorMarcador) return handleErrorClient(res, 400, "Error actualizando el marcador", errorMarcador);
 
     handleSuccess(res, 200, "Marcador actualizado correctamente", marcador);
+  } catch (error) {
+    handleErrorServer(res, 500, error.message);
+  }
+}
+
+export async function getMarcadores(req, res) {
+  try {
+    const [marcadores, errorMarcadores] = await getAllMarcadoresService();
+
+    if (errorMarcadores) return handleErrorClient(res, 404, errorMarcadores);
+
+    handleSuccess(res, 200, "Marcadores encontrados", marcadores);
   } catch (error) {
     handleErrorServer(res, 500, error.message);
   }

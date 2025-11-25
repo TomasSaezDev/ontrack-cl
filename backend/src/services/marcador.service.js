@@ -58,3 +58,29 @@ export async function updateMarcadorByUserService(userId, body) {
     return [null, "Error interno del servidor"];
   }
 }
+
+export async function getAllMarcadoresService() {
+  try {
+    const marcadorRepository = AppDataSource.getRepository(Marcador);
+
+    const marcadores = await marcadorRepository.find({
+      relations: ["user"],
+      order: {
+        puntos: "DESC",
+      },
+    });
+
+    if (!marcadores || marcadores.length === 0) return [null, "No hay marcadores"];
+
+    const marcadoresData = marcadores.map((marcador) => {
+      const { user, ...marcadorInfo } = marcador;
+      const { password, ...userData } = user;
+      return { ...marcadorInfo, user: userData };
+    });
+
+    return [marcadoresData, null];
+  } catch (error) {
+    console.error("Error al obtener los marcadores:", error);
+    return [null, "Error interno del servidor"];
+  }
+}

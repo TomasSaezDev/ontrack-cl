@@ -9,20 +9,23 @@ import {
   getUsers,
   updateMarcador,
   updateUser,
+  getMarcadores,
 } from "../controllers/user.controller.js";
 
 const router = Router();
 
-router
-  .use(authenticateJwt)
-  .use(isAdmin);
+router.use(authenticateJwt);
+
+router.get("/marcadores", getMarcadores);
+router.get("/detail/marcador", getMarcador);
+
+router.use(isAdmin);
 
 router
   .get("/", getUsers)
   .get("/detail/", getUser)
   .patch("/detail/", updateUser)
   .delete("/detail/", deleteUser)
-  .get("/detail/marcador", getMarcador)
   .patch("/detail/marcador", updateMarcador);
 
 export default router;

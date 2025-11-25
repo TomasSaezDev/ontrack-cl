@@ -31,6 +31,7 @@ export async function loginService(user) {
     }
 
     const payload = {
+      id: userFound.id,
       nombreCompleto: userFound.nombreCompleto,
       email: userFound.email,
       rol: userFound.rol,
@@ -53,7 +54,7 @@ export async function registerService(user) {
     const userRepository = AppDataSource.getRepository(User);
     const marcadorRepository = AppDataSource.getRepository(Marcador);
 
-    const { nombreCompleto,email } = user;
+    const { nombreCompleto, email } = user;
 
     const createErrorMessage = (dataInfo, message) => ({
       dataInfo,
@@ -65,7 +66,7 @@ export async function registerService(user) {
         email,
       },
     });
-    
+
     if (existingEmailUser) return [null, createErrorMessage("email", "Correo electrónico en uso")];
 
 
