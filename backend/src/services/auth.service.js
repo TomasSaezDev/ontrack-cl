@@ -10,6 +10,7 @@ export async function loginService(user) {
   try {
     const userRepository = AppDataSource.getRepository(User);
     const { email, password } = user;
+    console.log("loginService started for email:", email);
 
     const createErrorMessage = (dataInfo, message) => ({
       dataInfo,
@@ -19,12 +20,14 @@ export async function loginService(user) {
     const userFound = await userRepository.findOne({
       where: { email }
     });
+    console.log("User found:", userFound ? "yes" : "no");
 
     if (!userFound) {
       return [null, createErrorMessage("email", "El correo electrónico es incorrecto")];
     }
 
     const isMatch = await comparePassword(password, userFound.password);
+    console.log("Password match:", isMatch);
 
     if (!isMatch) {
       return [null, createErrorMessage("password", "La contraseña es incorrecta")];

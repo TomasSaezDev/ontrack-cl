@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
@@ -11,7 +12,13 @@ class AuthService {
   AuthService._internal();
 
   // Android emulator uses 10.0.2.2 to access host localhost
-  static const String baseUrl = 'http://10.0.2.2:3000/api/auth';
+  static String get baseUrl {
+    if (Platform.isAndroid) {
+      return 'http://10.0.2.2:3000/api/auth';
+    }
+    return 'http://localhost:3000/api/auth';
+  }
+
   final _storage = const FlutterSecureStorage();
 
   Future<Map<String, dynamic>> login(String email, String password) async {
@@ -93,15 +100,14 @@ class AuthService {
     return null;
   }
 
+
+
+  // Obtener todos los marcadores
   Future<List<dynamic>> getMarcadores() async {
     final token = await _storage.read(key: 'jwt_token');
     if (token == null) return [];
 
     try {
-      // Note: The backend endpoint is /api/user/marcadores, not /api/auth/marcadores
-      // We need to construct the URL correctly.
-      // baseUrl is http://10.0.2.2:3000/api/auth
-      // We need http://10.0.2.2:3000/api/user/marcadores
       final userUrl = baseUrl.replaceAll('/auth', '/user');
 
       final response = await http.get(
@@ -124,6 +130,7 @@ class AuthService {
     }
   }
 
+  // Obtener un marcador por ID de usuario
   Future<Marcador?> getMarcador(int userId) async {
     final token = await _storage.read(key: 'jwt_token');
     if (token == null) {

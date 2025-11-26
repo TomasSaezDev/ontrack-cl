@@ -13,13 +13,16 @@ import {
 export async function login(req, res) {
   try {
     const { body } = req;
+    console.log("Login request received in controller", body);
 
     const { error } = authValidation.validate(body);
 
     if (error) {
       return handleErrorClient(res, 400, "Error de validación", error.message);
     }
+    console.log("Calling loginService");
     const [accessToken, errorToken] = await loginService(body);
+    console.log("loginService returned", { accessToken: accessToken ? "present" : "null", errorToken });
 
     if (errorToken) return handleErrorClient(res, 400, "Error iniciando sesión", errorToken);
 

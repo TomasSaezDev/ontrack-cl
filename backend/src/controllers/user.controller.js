@@ -24,6 +24,8 @@ import {
 } from "../handlers/responseHandlers.js";
 import Joi from "joi";
 
+
+
 export async function getUser(req, res) {
   try {
     const { id, email } = req.query;
