@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../services/auth_service.dart';
-import '../models/user_model.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -13,8 +13,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  bool _isLoading = false;
-  final _authService = AuthService();
 
   @override
   void dispose() {
@@ -25,32 +23,22 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _login() async {
     if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-      });
+      final authProvider = context.read<AuthProvider>();
 
-      final result = await _authService.login(
+      final success = await authProvider.login(
         _emailController.text,
         _passwordController.text,
       );
 
       if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-
-        if (result['success']) {
-          final User user = result['user'];
-          Navigator.pushNamedAndRemoveUntil(
-            context,
-            '/home',
-            (route) => false,
-            arguments: user,
-          );
+        if (success) {
+          Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(result['message'] ?? 'Error al iniciar sesión'),
+              content: Text(
+                authProvider.errorMessage ?? 'Error al iniciar sesión',
+              ),
               backgroundColor: Colors.red,
             ),
           );
@@ -61,6 +49,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isLoading = context.select<AuthProvider, bool>((p) => p.isLoading);
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -139,8 +129,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 32),
                 ElevatedButton(
-                  onPressed: _isLoading ? null : _login,
-                  child: _isLoading
+                  onPressed: isLoading ? null : _login,
+                  child: isLoading
                       ? const SizedBox(
                           height: 20,
                           width: 20,

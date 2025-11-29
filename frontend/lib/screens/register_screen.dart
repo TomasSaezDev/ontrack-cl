@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../services/auth_service.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -13,8 +14,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  bool _isLoading = false;
-  final _authService = AuthService();
 
   @override
   void dispose() {
@@ -26,30 +25,24 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   void _register() async {
     if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-      });
+      final authProvider = context.read<AuthProvider>();
 
-      final result = await _authService.register(
+      final success = await authProvider.register(
         _nameController.text,
         _emailController.text,
         _passwordController.text,
       );
 
       if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-
-        if (result['success']) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(result['message'] ?? 'Registro exitoso')),
-          );
+        if (success) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Registro exitoso')));
           Navigator.pop(context); // Go back to login
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(result['message'] ?? 'Error al registrar'),
+              content: Text(authProvider.errorMessage ?? 'Error al registrar'),
               backgroundColor: Colors.red,
             ),
           );
@@ -60,6 +53,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isLoading = context.select<AuthProvider, bool>((p) => p.isLoading);
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -159,8 +154,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
                 const SizedBox(height: 32),
                 ElevatedButton(
-                  onPressed: _isLoading ? null : _register,
-                  child: _isLoading
+                  onPressed: isLoading ? null : _register,
+                  child: isLoading
                       ? const SizedBox(
                           height: 20,
                           width: 20,

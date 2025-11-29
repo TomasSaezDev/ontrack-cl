@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
 import '../models/marcador_model.dart';
-import '../services/auth_service.dart';
 
 class LeaderboardScreen extends StatefulWidget {
   const LeaderboardScreen({super.key});
@@ -10,28 +11,20 @@ class LeaderboardScreen extends StatefulWidget {
 }
 
 class _LeaderboardScreenState extends State<LeaderboardScreen> {
-  final AuthService _authService = AuthService();
-  List<Marcador> _marcadores = [];
-  bool _isLoading = true;
-
   @override
   void initState() {
     super.initState();
-    _loadMarcadores();
-  }
-
-  Future<void> _loadMarcadores() async {
-    final data = await _authService.getMarcadores();
-    if (mounted) {
-      setState(() {
-        _marcadores = data.map((json) => Marcador.fromJson(json)).toList();
-        _isLoading = false;
-      });
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<AuthProvider>().fetchLeaderboard();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = context.watch<AuthProvider>();
+    final marcadores = authProvider.leaderboard;
+    final isLoading = authProvider.isLoading;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Tabla de Posiciones'),
@@ -43,13 +36,13 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
         ),
       ),
       body: SafeArea(
-        child: _isLoading
+        child: isLoading
             ? const Center(child: CircularProgressIndicator())
             : ListView.builder(
                 padding: const EdgeInsets.all(16.0),
-                itemCount: _marcadores.length,
+                itemCount: marcadores.length,
                 itemBuilder: (context, index) {
-                  final marcador = _marcadores[index];
+                  final marcador = marcadores[index];
                   final isTop3 = index < 3;
 
                   return Card(

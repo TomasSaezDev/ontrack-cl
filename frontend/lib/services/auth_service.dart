@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:jwt_decoder/jwt_decoder.dart';
@@ -13,6 +14,9 @@ class AuthService {
 
   // Android emulator uses 10.0.2.2 to access host localhost
   static String get baseUrl {
+    if (kIsWeb) {
+      return 'http://localhost:3000/api/auth';
+    }
     if (Platform.isAndroid) {
       return 'http://10.0.2.2:3000/api/auth';
     }
@@ -99,8 +103,6 @@ class AuthService {
     }
     return null;
   }
-
-
 
   // Obtener todos los marcadores
   Future<List<dynamic>> getMarcadores() async {

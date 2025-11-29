@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../models/user_model.dart';
+import 'package:provider/provider.dart';
+import '../providers/auth_provider.dart';
 import '../models/marcador_model.dart';
-import '../services/auth_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -11,54 +11,20 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final AuthService _authService = AuthService();
-  Marcador? _userMarcador;
-  bool _isLoading = true;
-
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadUserMarcador();
+      context.read<AuthProvider>().fetchMarcador();
     });
-  }
-
-  Future<void> _loadUserMarcador() async {
-    print('DEBUG: _loadUserMarcador started');
-    final User? user = ModalRoute.of(context)!.settings.arguments as User?;
-    if (user != null) {
-      print('DEBUG: User found: ${user.id}');
-      try {
-        final marcador = await _authService.getMarcador(user.id);
-        print('DEBUG: getMarcador returned: $marcador');
-        if (mounted) {
-          setState(() {
-            _userMarcador = marcador;
-            _isLoading = false;
-          });
-          print('DEBUG: State updated with marcador');
-        }
-      } catch (e) {
-        print('DEBUG: Error in _loadUserMarcador: $e');
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-          });
-        }
-      }
-    } else {
-      print('DEBUG: User is null');
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final User? user = ModalRoute.of(context)!.settings.arguments as User?;
+    final authProvider = context.watch<AuthProvider>();
+    final user = authProvider.user;
+    final marcador = authProvider.marcador as Marcador?;
+    final isLoading = authProvider.isLoading;
 
     return Scaffold(
       appBar: AppBar(
@@ -69,7 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () {
-              _authService.logout();
+              context.read<AuthProvider>().logout();
               Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
             },
           ),
@@ -138,9 +104,9 @@ class _HomeScreenState extends State<HomeScreen> {
               const SizedBox(height: 16),
 
               // User Stats Grid
-              _isLoading
+              isLoading
                   ? const Center(child: CircularProgressIndicator())
-                  : _userMarcador != null
+                  : marcador != null
                   ? GridView.count(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
@@ -150,19 +116,19 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         _buildStatCard(
                           'Puntos',
-                          _userMarcador!.puntos.toString(),
+                          marcador.puntos.toString(),
                           Icons.emoji_events,
                           Colors.amber,
                         ),
                         _buildStatCard(
                           'Horas',
-                          '${_userMarcador!.horas}h',
+                          '${marcador.horas}h',
                           Icons.timer,
                           Colors.blue,
                         ),
                         _buildStatCard(
                           'Visitas',
-                          _userMarcador!.visitas.toString(),
+                          marcador.visitas.toString(),
                           Icons.directions_car,
                           Colors.green,
                         ),
