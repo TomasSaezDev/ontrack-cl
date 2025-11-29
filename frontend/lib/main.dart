@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'screens/welcome_screen.dart';
-import 'screens/login_screen.dart';
-import 'screens/register_screen.dart';
-import 'screens/home_screen.dart';
-import 'screens/leaderboard_screen.dart';
+import 'screens/welcome/welcome_screen.dart';
+import 'screens/auth/login_screen.dart';
+import 'screens/auth/register_screen.dart';
+import 'screens/home/home_screen.dart';
+import 'screens/leaderboard/leaderboard_screen.dart';
 
 import 'package:provider/provider.dart';
 import 'providers/auth_provider.dart';

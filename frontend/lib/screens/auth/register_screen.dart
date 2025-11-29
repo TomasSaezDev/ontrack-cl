@@ -1,47 +1,48 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/auth_provider.dart';
-import './auth/widgets/login_button.dart';
-import './auth/widgets/login_header.dart';
-import './auth/widgets/login_footer.dart';
+import '../../providers/auth_provider.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
 
   @override
   void dispose() {
+    _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
-  void _login() async {
+  void _register() async {
     if (_formKey.currentState!.validate()) {
       final authProvider = context.read<AuthProvider>();
 
-      final success = await authProvider.login(
+      final success = await authProvider.register(
+        _nameController.text,
         _emailController.text,
         _passwordController.text,
       );
 
       if (mounted) {
         if (success) {
-          Navigator.pushNamedAndRemoveUntil(context, '/home', (route) => false);
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('Registro exitoso')));
+          Navigator.pop(context); // Go back to login
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(
-                authProvider.errorMessage ?? 'Error al iniciar sesión',
-              ),
+              content: Text(authProvider.errorMessage ?? 'Error al registrar'),
               backgroundColor: Colors.red,
             ),
           );
@@ -71,8 +72,41 @@ class _LoginScreenState extends State<LoginScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const LoginHeader(),
+                const Text(
+                  'Crear Cuenta',
+                  style: TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Únete a Ontrack y comienza a organizarte.',
+                  style: TextStyle(fontSize: 16, color: Colors.grey),
+                ),
                 const SizedBox(height: 48),
+                TextFormField(
+                  controller: _nameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Nombre Completo',
+                    prefixIcon: Icon(Icons.person_outline, color: Colors.grey),
+                  ),
+                  style: const TextStyle(color: Colors.white),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'El nombre es obligatorio';
+                    }
+                    if (value.length < 15 || value.length > 50) {
+                      return 'Debe tener entre 15 y 50 caracteres';
+                    }
+                    if (!RegExp(r'^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$').hasMatch(value)) {
+                      return 'Solo letras y espacios';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
                 TextFormField(
                   controller: _emailController,
                   decoration: const InputDecoration(
@@ -119,15 +153,34 @@ class _LoginScreenState extends State<LoginScreen> {
                   },
                 ),
                 const SizedBox(height: 32),
-                LoginButton(
-                  isLoading: isLoading,
-                  onPressed: isLoading ? null : _login,
+                ElevatedButton(
+                  onPressed: isLoading ? null : _register,
+                  child: isLoading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.black,
+                          ),
+                        )
+                      : const Text('Registrarse'),
                 ),
                 const SizedBox(height: 16),
-                LoginFooter(
-                  onRegisterPressed: () {
-                    Navigator.pushNamed(context, '/register');
-                  },
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      '¿Ya tienes cuenta?',
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      child: const Text('Inicia Sesión'),
+                    ),
+                  ],
                 ),
               ],
             ),
