@@ -11,6 +11,7 @@ export const AppDataSource = new DataSource({
   database: `${DATABASE}`,
   entities: ["src/entity/**/*.js"],
   synchronize: true,
+  dropSchema: false,
   logging: false,
 });
 

@@ -28,6 +28,10 @@ const TorneoSchema = new EntitySchema({
             default: true,
             nullable: false,
         },
+        userId: {
+            type: "int",
+            nullable: false,
+        },
         createdAt: {
             type: "timestamp with time zone",
             default: () => "CURRENT_TIMESTAMP",
