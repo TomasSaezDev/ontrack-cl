@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../widgets/main_layout.dart';
 
 class LeaderboardScreen extends StatefulWidget {
   const LeaderboardScreen({super.key});
@@ -24,16 +25,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
     final marcadores = authProvider.leaderboard;
     final isLoading = authProvider.isLoading;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Tabla de Posiciones'),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
+    return MainLayout(
+      title: 'Tabla de Posiciones',
       body: SafeArea(
         child: isLoading
             ? const Center(child: CircularProgressIndicator())
