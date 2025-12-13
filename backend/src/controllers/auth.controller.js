@@ -23,7 +23,7 @@ export async function login(req, res) {
     console.log("Calling loginService");
     const [accessToken, errorToken] = await loginService(body);
     console.log("loginService returned", { accessToken: accessToken ? "present" : "null", errorToken });
-
+    
     if (errorToken) return handleErrorClient(res, 400, "Error iniciando sesión", errorToken);
 
     res.cookie("jwt", accessToken, {

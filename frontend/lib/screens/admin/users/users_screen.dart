@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../../../providers/auth_provider.dart';
+
 import '../../../widgets/main_layout.dart';
 import '../../../widgets/search/search_widget.dart';
+import '../../../services/user_service.dart';
+import '../../../models/user_model.dart';
 
 class UsersScreen extends StatefulWidget {
   const UsersScreen({super.key});
@@ -13,8 +14,8 @@ class UsersScreen extends StatefulWidget {
 
 class _UsersScreenState extends State<UsersScreen> {
   String _searchQuery = '';
-  List<dynamic> _filteredUsers = [];
-  List<dynamic> _allUsers = [];
+  List<User> _filteredUsers = [];
+  List<User> _allUsers = [];
   bool _isLoading = true;
 
   @override
@@ -29,46 +30,12 @@ class _UsersScreenState extends State<UsersScreen> {
     });
 
     try {
-      final authProvider = context.read<AuthProvider>();
-      // Aquí iría la llamada para obtener todos los usuarios
-      // Por ahora simulamos con datos de ejemplo
-      await Future.delayed(const Duration(seconds: 1));
-      
-      // Datos de ejemplo - reemplazar con llamada real al API
-      _allUsers = [
-        {
-          'id': 1,
-          'nombreCompleto': 'Tomás Sáez Aguayo',
-          'email': 'tomass2942@gmail.com',
-          'rol': 'administrador',
-          'rut': '12.345.678-9',
-          'puntos': 1250,
-          'horas': 45,
-          'visitas': 23,
-        },
-        {
-          'id': 2,
-          'nombreCompleto': 'Diego Sebastián Ampuero Belmar',
-          'email': 'usuario1.2024@gmail.cl',
-          'rol': 'usuario',
-          'rut': '98.765.432-1',
-          'puntos': 890,
-          'horas': 32,
-          'visitas': 18,
-        },
-        {
-          'id': 3,
-          'nombreCompleto': 'Alexander Benjamín Marcelo Carrasco Fuentes',
-          'email': 'usuario2.2024@gmail.cl',
-          'rol': 'usuario',
-          'rut': '11.222.333-4',
-          'puntos': 675,
-          'horas': 28,
-          'visitas': 15,
-        },
-      ];
-      
-      _filteredUsers = List.from(_allUsers);
+      final users = await UserService().getAllUsers();
+
+      setState(() {
+        _allUsers = users;
+        _filteredUsers = List.from(_allUsers);
+      });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -90,26 +57,26 @@ class _UsersScreenState extends State<UsersScreen> {
         _filteredUsers = List.from(_allUsers);
       } else {
         _filteredUsers = _allUsers.where((user) {
-          final name = user['nombreCompleto'].toLowerCase();
-          final email = user['email'].toLowerCase();
-          final id = user['id'].toString();
-          final rut = user['rut']?.toLowerCase() ?? '';
+          final name = user.nombreCompleto.toLowerCase();
+          final email = user.email.toLowerCase();
+          final id = user.id.toString();
+          final rut = user.rut?.toLowerCase() ?? '';
           final searchLower = query.toLowerCase();
-          
-          return name.contains(searchLower) || 
-                 email.contains(searchLower) || 
-                 id.contains(searchLower) ||
-                 rut.contains(searchLower);
+
+          return name.contains(searchLower) ||
+              email.contains(searchLower) ||
+              id.contains(searchLower) ||
+              rut.contains(searchLower);
         }).toList();
       }
     });
   }
 
-  void _navigateToUserDetail(Map<String, dynamic> user) {
+  void _navigateToUserDetail(User user) {
     Navigator.pushNamed(
-      context, 
+      context,
       '/admin/user-detail',
-      arguments: user,
+      arguments: user.toJson(),
     );
   }
 
@@ -162,10 +129,7 @@ class _UsersScreenState extends State<UsersScreen> {
                 children: [
                   Text(
                     'Resultados para "${_searchQuery}": ${_filteredUsers.length}',
-                    style: const TextStyle(
-                      color: Colors.grey,
-                      fontSize: 14,
-                    ),
+                    style: const TextStyle(color: Colors.grey, fontSize: 14),
                   ),
                   const Spacer(),
                   TextButton(
@@ -183,39 +147,41 @@ class _UsersScreenState extends State<UsersScreen> {
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())
                 : _filteredUsers.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              _searchQuery.isEmpty ? Icons.people_outline : Icons.search_off,
-                              size: 64,
-                              color: Colors.grey,
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              _searchQuery.isEmpty 
-                                  ? 'No hay usuarios registrados'
-                                  : 'No se encontraron usuarios',
-                              style: const TextStyle(
-                                color: Colors.grey,
-                                fontSize: 18,
-                              ),
-                            ),
-                          ],
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          _searchQuery.isEmpty
+                              ? Icons.people_outline
+                              : Icons.search_off,
+                          size: 64,
+                          color: Colors.grey,
                         ),
-                      )
-                    : RefreshIndicator(
-                        onRefresh: _loadUsers,
-                        child: ListView.builder(
-                          padding: const EdgeInsets.all(16.0),
-                          itemCount: _filteredUsers.length,
-                          itemBuilder: (context, index) {
-                            final user = _filteredUsers[index];
-                            return _buildUserCard(user);
-                          },
+                        const SizedBox(height: 16),
+                        Text(
+                          _searchQuery.isEmpty
+                              ? 'No hay usuarios registrados'
+                              : 'No se encontraron usuarios',
+                          style: const TextStyle(
+                            color: Colors.grey,
+                            fontSize: 18,
+                          ),
                         ),
-                      ),
+                      ],
+                    ),
+                  )
+                : RefreshIndicator(
+                    onRefresh: _loadUsers,
+                    child: ListView.builder(
+                      padding: const EdgeInsets.all(16.0),
+                      itemCount: _filteredUsers.length,
+                      itemBuilder: (context, index) {
+                        final user = _filteredUsers[index];
+                        return _buildUserCard(user);
+                      },
+                    ),
+                  ),
           ),
         ],
       ),
@@ -229,15 +195,15 @@ class _UsersScreenState extends State<UsersScreen> {
     );
   }
 
-  Widget _buildUserCard(Map<String, dynamic> user) {
-    final isAdmin = user['rol'] == 'administrador';
-    
+  Widget _buildUserCard(User user) {
+    final isAdmin = user.rol == 'administrador';
+
     return Card(
       color: Colors.grey[900],
       margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: isAdmin 
+        side: isAdmin
             ? const BorderSide(color: Colors.amber, width: 1)
             : BorderSide.none,
       ),
@@ -254,7 +220,7 @@ class _UsersScreenState extends State<UsersScreen> {
           children: [
             Expanded(
               child: Text(
-                user['nombreCompleto'],
+                user.nombreCompleto,
                 style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
@@ -284,34 +250,33 @@ class _UsersScreenState extends State<UsersScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 4),
-            Text(
-              user['email'],
-              style: const TextStyle(color: Colors.grey),
-            ),
+            Text(user.email, style: const TextStyle(color: Colors.grey)),
             const SizedBox(height: 2),
             Text(
-              'ID: ${user['id']} • RUT: ${user['rut']}',
-              style: const TextStyle(
-                color: Colors.grey,
-                fontSize: 12,
-              ),
+              'ID: ${user.id} • RUT: ${user.rut ?? "N/A"}',
+              style: const TextStyle(color: Colors.grey, fontSize: 12),
             ),
             const SizedBox(height: 8),
             Row(
               children: [
-                _buildStatChip(Icons.emoji_events, '${user['puntos']} pts', Colors.amber),
+                _buildStatChip(
+                  Icons.emoji_events,
+                  '${user.puntos} pts',
+                  Colors.amber,
+                ),
                 const SizedBox(width: 8),
-                _buildStatChip(Icons.timer, '${user['horas']}h', Colors.blue),
+                _buildStatChip(Icons.timer, '${user.horas}h', Colors.blue),
                 const SizedBox(width: 8),
-                _buildStatChip(Icons.directions_car, '${user['visitas']}', Colors.green),
+                _buildStatChip(
+                  Icons.directions_car,
+                  '${user.visitas}',
+                  Colors.green,
+                ),
               ],
             ),
           ],
         ),
-        trailing: const Icon(
-          Icons.chevron_right,
-          color: Colors.grey,
-        ),
+        trailing: const Icon(Icons.chevron_right, color: Colors.grey),
         onTap: () => _navigateToUserDetail(user),
       ),
     );

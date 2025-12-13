@@ -6,6 +6,7 @@ class MainLayout extends StatelessWidget {
   final String title;
   final List<Widget>? actions;
   final bool showDrawer;
+  final Widget? floatingActionButton;
 
   const MainLayout({
     super.key,
@@ -13,6 +14,7 @@ class MainLayout extends StatelessWidget {
     required this.title,
     this.actions,
     this.showDrawer = true,
+    this.floatingActionButton,
   });
 
   @override
@@ -37,6 +39,7 @@ class MainLayout extends StatelessWidget {
       ),
       drawer: showDrawer ? const AppDrawer() : null,
       body: body,
+      floatingActionButton: floatingActionButton,
     );
   }
 }

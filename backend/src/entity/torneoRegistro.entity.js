@@ -37,7 +37,7 @@ const TorneoRegistroSchema = new EntitySchema({
     },
     relations: {
         torneo: {
-            type: "one-to-one",
+            type: "many-to-one",
             target: "Torneo",
             joinColumn: {
                 name: "torneoId",
@@ -46,7 +46,7 @@ const TorneoRegistroSchema = new EntitySchema({
             onDelete: "CASCADE",
         },
         user: {
-            type: "one-to-one",
+            type: "many-to-one",
             target: "User",
             joinColumn: {
                 name: "userId",
@@ -62,14 +62,11 @@ const TorneoRegistroSchema = new EntitySchema({
             unique: true,
         },
         {
-            name: "IDX_TORNEO_REGISTRO_TORNEO",
-            columns: ["torneoId"],
-            unique: true,
-        },
-        {
-            name: "IDX_TORNEO_REGISTRO_USER",
-            columns: ["userId"],
+            name: "IDX_TORNEO_REGISTRO_UNIQUE_PARTICIPANT",
+            columns: ["torneoId", "userId"],
             unique: true,
         },
     ],
 });
+
+export default TorneoRegistroSchema;
