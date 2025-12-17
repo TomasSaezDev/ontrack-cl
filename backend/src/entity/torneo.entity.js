@@ -23,6 +23,11 @@ const TorneoSchema = new EntitySchema({
             type: "text",
             nullable: true,
         },
+        premio: {
+            type: "int",
+            nullable: false,
+            default: 0,
+        },
         estado: {
             type: "boolean",
             default: true,

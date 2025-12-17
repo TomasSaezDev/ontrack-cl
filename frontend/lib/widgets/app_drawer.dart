@@ -16,68 +16,50 @@ class AppDrawer extends StatelessWidget {
       child: Column(
         children: [
           // Header del drawer con información del usuario
-          DrawerHeader(
-            decoration: const BoxDecoration(
-              color: Colors.black,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const CircleAvatar(
-                  radius: 30,
-                  backgroundColor: Colors.grey,
-                  child: Icon(
-                    Icons.person,
-                    size: 35,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                if (user != null) ...[
-                  Text(
+          UserAccountsDrawerHeader(
+            decoration: const BoxDecoration(color: Colors.black),
+            accountName: user != null
+                ? Text(
                     user.nombreCompleto,
                     style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
                       fontWeight: FontWeight.bold,
+                      fontSize: 16,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    user.email,
-                    style: const TextStyle(
-                      color: Colors.grey,
-                      fontSize: 12,
+                  )
+                : const Text('Invitado'),
+            accountEmail: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (user != null) Text(user.email),
+                if (isAdmin)
+                  Container(
+                    margin: const EdgeInsets.only(top: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  if (isAdmin)
-                    const SizedBox(height: 4),
-                  if (isAdmin)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: Colors.amber,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Text(
-                        'ADMIN',
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 10,
-                          fontWeight: FontWeight.bold,
-                        ),
+                    decoration: BoxDecoration(
+                      color: Colors.amber,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Text(
+                      'ADMIN',
+                      style: TextStyle(
+                        color: Colors.black,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                ],
+                  ),
               ],
             ),
+            currentAccountPicture: const CircleAvatar(
+              backgroundColor: Colors.grey,
+              child: Icon(Icons.person, size: 35, color: Colors.white),
+            ),
           ),
-          
+
           // Opciones del menú
           Expanded(
             child: ListView(
@@ -107,7 +89,7 @@ class AppDrawer extends StatelessWidget {
                   title: 'Perfil',
                   route: '/profile',
                 ),
-                
+
                 // Sección de administrador
                 if (isAdmin) ...[
                   const Padding(
@@ -149,7 +131,7 @@ class AppDrawer extends StatelessWidget {
                     child: Divider(color: Colors.grey),
                   ),
                 ],
-                
+
                 _buildDrawerItem(
                   context,
                   icon: Icons.settings,
@@ -166,7 +148,7 @@ class AppDrawer extends StatelessWidget {
               ],
             ),
           ),
-          
+
           // Botón de logout al final
           Container(
             padding: const EdgeInsets.all(16),
@@ -247,7 +229,11 @@ class AppDrawer extends StatelessWidget {
               onPressed: () {
                 Navigator.pop(context);
                 context.read<AuthProvider>().logout();
-                Navigator.pushNamedAndRemoveUntil(context, '/', (route) => false);
+                Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  '/',
+                  (route) => false,
+                );
               },
               child: const Text(
                 'Cerrar Sesión',
