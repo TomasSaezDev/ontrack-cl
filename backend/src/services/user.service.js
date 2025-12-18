@@ -41,6 +41,42 @@ export async function getUsersService() {
   }
 }
 
+export async function createUserService(userData) {
+  try {
+    const userRepository = AppDataSource.getRepository(User);
+
+    // Verificar si ya existe un usuario con el mismo email
+    const existingUser = await userRepository.findOne({
+      where: { email: userData.email },
+    });
+
+    if (existingUser) {
+      return [null, "Ya existe un usuario con ese email"];
+    }
+
+    // Encriptar la contraseña
+    const hashedPassword = await encryptPassword(userData.password);
+
+    // Crear el nuevo usuario
+    const newUser = userRepository.create({
+      nombreCompleto: userData.nombreCompleto,
+      email: userData.email,
+      rol: userData.rol,
+      password: hashedPassword,
+    });
+
+    await userRepository.save(newUser);
+
+    // Retornar el usuario sin la contraseña
+    const { password, ...userWithoutPassword } = newUser;
+
+    return [userWithoutPassword, null];
+  } catch (error) {
+    console.error("Error al crear usuario:", error);
+    return [null, "Error interno del servidor"];
+  }
+}
+
 export async function updateUserService(query, body) {
   try {
     const { id, email } = query;

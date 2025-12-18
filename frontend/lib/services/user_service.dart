@@ -48,4 +48,39 @@ class UserService {
       rethrow;
     }
   }
+
+  Future<User> createUser(Map<String, dynamic> userData) async {
+    try {
+      final token = await _storage.read(key: 'jwt_token');
+      if (token == null) {
+        throw Exception('No authentication token found');
+      }
+
+      final baseUrl = AuthService.baseUrl.replaceAll('/auth', '/user');
+
+      final response = await http.post(
+        Uri.parse(baseUrl),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode(userData),
+      );
+
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data is Map<String, dynamic> && data.containsKey('data')) {
+          return User.fromJson(data['data']);
+        }
+        return User.fromJson(data);
+      } else {
+        final error = jsonDecode(response.body);
+        final message = error['message'] ?? 'Error al crear usuario';
+        throw Exception(message);
+      }
+    } catch (e) {
+      print('Error creating user: $e');
+      rethrow;
+    }
+  }
 }

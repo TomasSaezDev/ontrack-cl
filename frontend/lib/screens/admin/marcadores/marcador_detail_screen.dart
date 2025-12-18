@@ -25,7 +25,6 @@ class _MarcadorDetailScreenState extends State<MarcadorDetailScreen> {
   void initState() {
     super.initState();
     _marcador = Map<String, dynamic>.from(widget.user);
-    _startTimer();
   }
 
   @override
@@ -35,27 +34,6 @@ class _MarcadorDetailScreenState extends State<MarcadorDetailScreen> {
     super.dispose();
   }
 
-  void _startTimer() {
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      final marcadorProvider = Provider.of<MarcadorProvider>(context, listen: false);
-      final userId = _marcador['userId'];
-      
-      if (userId != null && _marcador['isActive'] == true) {
-        final currentTime = marcadorProvider.getLocalTime(userId);
-        if (currentTime > 0) {
-          marcadorProvider.decrementLocalTime(userId);
-          setState(() {
-            _marcador['timeRemaining'] = currentTime - 1;
-          });
-        } else {
-          setState(() {
-            _marcador['isActive'] = false;
-          });
-        }
-      }
-    });
-  }
-
   Future<void> _startSession() async {
     setState(() {
       _isLoading = true;
@@ -63,12 +41,20 @@ class _MarcadorDetailScreenState extends State<MarcadorDetailScreen> {
     });
 
     try {
-      final marcadorProvider = Provider.of<MarcadorProvider>(context, listen: false);
+      final marcadorProvider = Provider.of<MarcadorProvider>(
+        context,
+        listen: false,
+      );
       final userId = _marcador['userId'];
-      final timeInMinutes = (_marcador['totalTime'] ?? 3600) ~/ 60; // Convertir segundos a minutos
+      final timeInMinutes =
+          (_marcador['totalTime'] ?? 3600) ~/
+          60; // Convertir segundos a minutos
 
-      final success = await marcadorProvider.startSession(userId, timeInMinutes);
-      
+      final success = await marcadorProvider.startSession(
+        userId,
+        timeInMinutes,
+      );
+
       if (success) {
         await _refreshMarcador();
         if (mounted) {
@@ -102,11 +88,22 @@ class _MarcadorDetailScreenState extends State<MarcadorDetailScreen> {
     });
 
     try {
-      final marcadorProvider = Provider.of<MarcadorProvider>(context, listen: false);
+      final marcadorProvider = Provider.of<MarcadorProvider>(
+        context,
+        listen: false,
+      );
       final userId = _marcador['userId'];
       final currentTime = marcadorProvider.getLocalTime(userId);
-      final isActive = _marcador['isActive'] != true;
+      final isActiveNow = _marcador['isActive'] == true;
+      final isActive = !isActiveNow; // Invertir el estado
       final totalTime = _marcador['totalTime'] ?? 0;
+
+      print('🔵 [FRONTEND] _toggleSession iniciado');
+      print('🔵 [FRONTEND] userId: $userId');
+      print('🔵 [FRONTEND] Estado actual isActive: $isActiveNow');
+      print('🔵 [FRONTEND] Nuevo estado isActive: $isActive');
+      print('🔵 [FRONTEND] currentTime: $currentTime');
+      print('🔵 [FRONTEND] totalTime: $totalTime');
 
       final success = await marcadorProvider.toggleSession(
         userId,
@@ -114,23 +111,28 @@ class _MarcadorDetailScreenState extends State<MarcadorDetailScreen> {
         isActive,
         totalTime,
       );
-      
+
+      print('🔵 [FRONTEND] toggleSession resultado: $success');
+
       if (success) {
         await _refreshMarcador();
+        print('🔵 [FRONTEND] Marcador actualizado después de toggle');
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(isActive ? 'Sesión reanudada' : 'Sesión pausada'),
+              content: Text(isActive ? 'Sesión iniciada' : 'Sesión pausada'),
               backgroundColor: Colors.green,
             ),
           );
         }
       } else {
+        print('❌ [FRONTEND] Error en toggleSession');
         setState(() {
           _errorMessage = 'Error al cambiar estado de sesión';
         });
       }
     } catch (e) {
+      print('❌ [FRONTEND] Excepción en toggleSession: $e');
       setState(() {
         _errorMessage = 'Error: ${e.toString()}';
       });
@@ -148,7 +150,10 @@ class _MarcadorDetailScreenState extends State<MarcadorDetailScreen> {
     });
 
     try {
-      final marcadorProvider = Provider.of<MarcadorProvider>(context, listen: false);
+      final marcadorProvider = Provider.of<MarcadorProvider>(
+        context,
+        listen: false,
+      );
       final userId = _marcador['userId'];
       final currentTime = marcadorProvider.getLocalTime(userId);
       final isActive = _marcador['isActive'] == true;
@@ -161,13 +166,15 @@ class _MarcadorDetailScreenState extends State<MarcadorDetailScreen> {
         isActive,
         totalTime,
       );
-      
+
       if (success) {
         await _refreshMarcador();
         if (mounted) {
+          final action = additionalMinutes > 0 ? 'agregaron' : 'quitaron';
+          final absMinutes = additionalMinutes.abs();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Se agregaron $additionalMinutes minutos'),
+              content: Text('Se $action $absMinutes minutos'),
               backgroundColor: Colors.green,
             ),
           );
@@ -211,11 +218,14 @@ class _MarcadorDetailScreenState extends State<MarcadorDetailScreen> {
         _errorMessage = null;
       });
 
-      final marcadorProvider = Provider.of<MarcadorProvider>(context, listen: false);
+      final marcadorProvider = Provider.of<MarcadorProvider>(
+        context,
+        listen: false,
+      );
       final userId = _marcador['userId'];
 
       final success = await marcadorProvider.setTime(userId, totalMinutes);
-      
+
       if (success) {
         await _refreshMarcador();
         _timeController.clear();
@@ -244,90 +254,13 @@ class _MarcadorDetailScreenState extends State<MarcadorDetailScreen> {
     }
   }
 
-  Future<void> _resetSession() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-
-    try {
-      final marcadorProvider = Provider.of<MarcadorProvider>(context, listen: false);
-      final userId = _marcador['userId'];
-      final totalTime = _marcador['totalTime'] ?? 0;
-
-      final success = await marcadorProvider.resetSession(userId, totalTime);
-      
-      if (success) {
-        await _refreshMarcador();
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Sesión reiniciada'),
-              backgroundColor: Colors.green,
-            ),
-          );
-        }
-      } else {
-        setState(() {
-          _errorMessage = 'Error al reiniciar sesión';
-        });
-      }
-    } catch (e) {
-      setState(() {
-        _errorMessage = 'Error: ${e.toString()}';
-      });
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
-
-  Future<void> _endSession() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
-
-    try {
-      final marcadorProvider = Provider.of<MarcadorProvider>(context, listen: false);
-      final userId = _marcador['userId'];
-      final totalTime = _marcador['totalTime'] ?? 0;
-      final currentTime = marcadorProvider.getLocalTime(userId);
-      final timeUsed = totalTime - currentTime;
-
-      final success = await marcadorProvider.endSession(userId, totalTime, timeUsed);
-      
-      if (success) {
-        await _refreshMarcador();
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Sesión finalizada'),
-              backgroundColor: Colors.green,
-            ),
-          );
-        }
-      } else {
-        setState(() {
-          _errorMessage = 'Error al finalizar sesión';
-        });
-      }
-    } catch (e) {
-      setState(() {
-        _errorMessage = 'Error: ${e.toString()}';
-      });
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
-
   Future<void> _refreshMarcador() async {
-    final marcadorProvider = Provider.of<MarcadorProvider>(context, listen: false);
+    final marcadorProvider = Provider.of<MarcadorProvider>(
+      context,
+      listen: false,
+    );
     final userId = _marcador['userId'];
-    
+
     if (userId != null) {
       final updatedMarcador = await marcadorProvider.getMarcadorByUser(userId);
       if (updatedMarcador != null && mounted) {
@@ -435,9 +368,13 @@ class _MarcadorDetailScreenState extends State<MarcadorDetailScreen> {
     return Consumer<MarcadorProvider>(
       builder: (context, marcadorProvider, child) {
         final userId = _marcador['userId'];
-        final currentTime = userId != null ? marcadorProvider.getLocalTime(userId) : 0;
+        final currentTime = userId != null
+            ? marcadorProvider.getLocalTime(userId)
+            : 0;
         final totalTime = _marcador['totalTime'] ?? 0;
-        final progress = totalTime > 0 ? (totalTime - currentTime) / totalTime : 0.0;
+        final progress = totalTime > 0
+            ? (totalTime - currentTime) / totalTime
+            : 0.0;
         final isActive = _marcador['isActive'] == true;
         final user = _marcador['user'] ?? _marcador;
 
@@ -458,7 +395,9 @@ class _MarcadorDetailScreenState extends State<MarcadorDetailScreen> {
                       children: [
                         CircleAvatar(
                           radius: 30,
-                          backgroundColor: isActive ? Colors.green : Colors.grey,
+                          backgroundColor: isActive
+                              ? Colors.green
+                              : Colors.grey,
                           child: Icon(
                             isActive ? Icons.play_arrow : Icons.pause,
                             color: Colors.white,
@@ -488,15 +427,24 @@ class _MarcadorDetailScreenState extends State<MarcadorDetailScreen> {
                               ),
                               const SizedBox(height: 8.0),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12.0,
+                                  vertical: 6.0,
+                                ),
                                 decoration: BoxDecoration(
-                                  color: isActive ? Colors.green[800] : Colors.grey[700],
+                                  color: isActive
+                                      ? Colors.green[800]
+                                      : Colors.grey[700],
                                   borderRadius: BorderRadius.circular(16.0),
                                 ),
                                 child: Text(
-                                  isActive ? 'SESIÓN ACTIVA' : 'SESIÓN INACTIVA',
+                                  isActive
+                                      ? 'SESIÓN ACTIVA'
+                                      : 'SESIÓN INACTIVA',
                                   style: TextStyle(
-                                    color: isActive ? Colors.green : Colors.grey,
+                                    color: isActive
+                                        ? Colors.green
+                                        : Colors.grey,
                                     fontSize: 12,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -622,19 +570,25 @@ class _MarcadorDetailScreenState extends State<MarcadorDetailScreen> {
                           ),
                         ),
                         const SizedBox(height: 16.0),
-                        
+
                         // Controles principales
                         Row(
                           children: [
                             Expanded(
                               child: ElevatedButton.icon(
-                                onPressed: _isLoading || currentTime <= 0 
-                                    ? null 
-                                    : (isActive ? null : _startSession),
+                                onPressed: _isLoading || isActive
+                                    ? null
+                                    : _startSession,
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.green,
+                                  backgroundColor: isActive
+                                      ? Colors.grey
+                                      : Colors.green,
                                   foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(vertical: 12.0),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 12.0,
+                                  ),
+                                  disabledBackgroundColor: Colors.grey,
+                                  disabledForegroundColor: Colors.white70,
                                 ),
                                 icon: const Icon(Icons.play_arrow),
                                 label: const Text('Iniciar'),
@@ -643,46 +597,22 @@ class _MarcadorDetailScreenState extends State<MarcadorDetailScreen> {
                             const SizedBox(width: 12.0),
                             Expanded(
                               child: ElevatedButton.icon(
-                                onPressed: _isLoading ? null : _toggleSession,
+                                onPressed: _isLoading || !isActive
+                                    ? null
+                                    : _toggleSession,
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: isActive ? Colors.orange : Colors.blue,
+                                  backgroundColor: isActive
+                                      ? Colors.red
+                                      : Colors.grey,
                                   foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(vertical: 12.0),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 12.0,
+                                  ),
+                                  disabledBackgroundColor: Colors.grey,
+                                  disabledForegroundColor: Colors.white70,
                                 ),
-                                icon: Icon(isActive ? Icons.pause : Icons.play_arrow),
-                                label: Text(isActive ? 'Pausar' : 'Reanudar'),
-                              ),
-                            ),
-                          ],
-                        ),
-                        
-                        const SizedBox(height: 12.0),
-                        
-                        Row(
-                          children: [
-                            Expanded(
-                              child: ElevatedButton.icon(
-                                onPressed: _isLoading ? null : _resetSession,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.purple,
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(vertical: 12.0),
-                                ),
-                                icon: const Icon(Icons.refresh),
-                                label: const Text('Reiniciar'),
-                              ),
-                            ),
-                            const SizedBox(width: 12.0),
-                            Expanded(
-                              child: ElevatedButton.icon(
-                                onPressed: _isLoading ? null : _endSession,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.red,
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(vertical: 12.0),
-                                ),
-                                icon: const Icon(Icons.stop),
-                                label: const Text('Finalizar'),
+                                icon: const Icon(Icons.pause),
+                                label: const Text('Pausar'),
                               ),
                             ),
                           ],
@@ -712,7 +642,7 @@ class _MarcadorDetailScreenState extends State<MarcadorDetailScreen> {
                           ),
                         ),
                         const SizedBox(height: 16.0),
-                        
+
                         // Botones de tiempo rápido
                         const Text(
                           'Agregar tiempo rápido:',
@@ -723,16 +653,36 @@ class _MarcadorDetailScreenState extends State<MarcadorDetailScreen> {
                           spacing: 8.0,
                           runSpacing: 8.0,
                           children: [
-                            _buildQuickTimeButton('5 min', 5),
-                            _buildQuickTimeButton('10 min', 10),
-                            _buildQuickTimeButton('15 min', 15),
-                            _buildQuickTimeButton('30 min', 30),
-                            _buildQuickTimeButton('1 hora', 60),
+                            _buildQuickTimeButton('+ 5 min', 5),
+                            _buildQuickTimeButton('+ 10 min', 10),
+                            _buildQuickTimeButton('+ 15 min', 15),
+                            _buildQuickTimeButton('+ 30 min', 30),
+                            _buildQuickTimeButton('+ 1 hora', 60),
                           ],
                         ),
-                        
+
                         const SizedBox(height: 16.0),
-                        
+
+                        // Botones para quitar tiempo
+                        const Text(
+                          'Quitar tiempo rápido:',
+                          style: TextStyle(color: Colors.grey),
+                        ),
+                        const SizedBox(height: 8.0),
+                        Wrap(
+                          spacing: 8.0,
+                          runSpacing: 8.0,
+                          children: [
+                            _buildQuickTimeButton('- 5 min', -5),
+                            _buildQuickTimeButton('- 10 min', -10),
+                            _buildQuickTimeButton('- 15 min', -15),
+                            _buildQuickTimeButton('- 30 min', -30),
+                            _buildQuickTimeButton('- 1 hora', -60),
+                          ],
+                        ),
+
+                        const SizedBox(height: 16.0),
+
                         // Establecer tiempo personalizado
                         SizedBox(
                           width: double.infinity,
@@ -741,10 +691,14 @@ class _MarcadorDetailScreenState extends State<MarcadorDetailScreen> {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.white,
                               foregroundColor: Colors.black,
-                              padding: const EdgeInsets.symmetric(vertical: 12.0),
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 12.0,
+                              ),
                             ),
                             icon: const Icon(Icons.edit),
-                            label: const Text('Establecer Tiempo Personalizado'),
+                            label: const Text(
+                              'Establecer Tiempo Personalizado',
+                            ),
                           ),
                         ),
                       ],
@@ -764,7 +718,7 @@ class _MarcadorDetailScreenState extends State<MarcadorDetailScreen> {
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 12.0),
                     ),
-                    icon: _isLoading 
+                    icon: _isLoading
                         ? const SizedBox(
                             width: 20,
                             height: 20,
@@ -774,7 +728,9 @@ class _MarcadorDetailScreenState extends State<MarcadorDetailScreen> {
                             ),
                           )
                         : const Icon(Icons.refresh),
-                    label: Text(_isLoading ? 'Actualizando...' : 'Actualizar Datos'),
+                    label: Text(
+                      _isLoading ? 'Actualizando...' : 'Actualizar Datos',
+                    ),
                   ),
                 ),
               ],
@@ -786,10 +742,11 @@ class _MarcadorDetailScreenState extends State<MarcadorDetailScreen> {
   }
 
   Widget _buildQuickTimeButton(String label, int minutes) {
+    final isNegative = minutes < 0;
     return ElevatedButton(
       onPressed: _isLoading ? null : () => _addTime(minutes),
       style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.blue[700],
+        backgroundColor: isNegative ? Colors.orange[700] : Colors.blue[700],
         foregroundColor: Colors.white,
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       ),

@@ -9,6 +9,7 @@ import {
 import {
   getUserService,
   getUsersService,
+  createUserService,
   updateUserService,
   deleteUserService,
 } from "../services/user.service.js";
@@ -59,6 +60,44 @@ export async function getUsers(req, res) {
       500,
       error.message,
     );
+  }
+}
+
+export async function createUser(req, res) {
+  try {
+    const { body } = req;
+
+    // Validación del body
+    const { error: bodyError } = userBodyValidation.validate(body);
+
+    if (bodyError) {
+      return handleErrorClient(
+        res,
+        400,
+        "Error de validación en los datos enviados",
+        bodyError.message,
+      );
+    }
+
+    // Verificar que los campos requeridos estén presentes
+    if (!body.nombreCompleto || !body.email || !body.rol || !body.password) {
+      return handleErrorClient(
+        res,
+        400,
+        "Faltan campos requeridos",
+        "nombreCompleto, email, rol y password son obligatorios"
+      );
+    }
+
+    const [user, userError] = await createUserService(body);
+
+    if (userError) {
+      return handleErrorClient(res, 400, "Error al crear usuario", userError);
+    }
+
+    handleSuccess(res, 201, "Usuario creado correctamente", user);
+  } catch (error) {
+    handleErrorServer(res, 500, error.message);
   }
 }
 

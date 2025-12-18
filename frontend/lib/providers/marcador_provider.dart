@@ -142,6 +142,12 @@ class MarcadorProvider extends ChangeNotifier {
   // Pausar/reanudar sesión
   Future<bool> toggleSession(int userId, int timeRemaining, bool isActive, int totalTime) async {
     try {
+      print('🟢 [PROVIDER] toggleSession llamado');
+      print('🟢 [PROVIDER] userId: $userId');
+      print('🟢 [PROVIDER] timeRemaining: $timeRemaining');
+      print('🟢 [PROVIDER] isActive: $isActive');
+      print('🟢 [PROVIDER] totalTime: $totalTime');
+      
       final updatedMarcador = await MarcadorTimeService.toggleSession(
         userId, 
         timeRemaining, 
@@ -149,12 +155,16 @@ class MarcadorProvider extends ChangeNotifier {
         totalTime
       );
       
+      print('🟢 [PROVIDER] updatedMarcador recibido: $updatedMarcador');
+      
       _updateMarcadorInList(updatedMarcador);
       _localTimers[userId] = updatedMarcador['timeRemaining'] ?? 0;
       
+      print('🟢 [PROVIDER] Marcador actualizado en lista y timer local');
       notifyListeners();
       return true;
     } catch (e) {
+      print('❌ [PROVIDER] Error en toggleSession: $e');
       _errorMessage = e.toString();
       notifyListeners();
       return false;

@@ -82,24 +82,36 @@ export async function toggleSession(req, res) {
     const { userId } = req.params;
     const { timeRemaining, isActive, totalTime } = req.body;
 
+    console.log('🔵 [CONTROLLER] toggleSession iniciado');
+    console.log('🔵 [CONTROLLER] userId:', userId);
+    console.log('🔵 [CONTROLLER] req.body:', req.body);
+    console.log('🔵 [CONTROLLER] timeRemaining:', timeRemaining);
+    console.log('🔵 [CONTROLLER] isActive (recibido):', isActive);
+    console.log('🔵 [CONTROLLER] totalTime:', totalTime);
+
     if (!userId) {
       return handleErrorClient(res, 400, "ID de usuario requerido");
     }
 
     if (timeRemaining === undefined || isActive === undefined || totalTime === undefined) {
+      console.log('❌ [CONTROLLER] Datos de sesión incompletos');
       return handleErrorClient(res, 400, "Datos de sesión incompletos");
     }
 
     const currentData = { timeRemaining, isActive, totalTime };
+    console.log('🔵 [CONTROLLER] currentData:', currentData);
+    
     const [marcador, error] = await toggleGameSession(parseInt(userId), currentData);
 
     if (error) {
+      console.log('❌ [CONTROLLER] Error en toggleGameSession:', error);
       return handleErrorClient(res, 400, error);
     }
 
+    console.log('✅ [CONTROLLER] toggleSession exitoso, marcador:', marcador);
     handleSuccess(res, 200, "Estado de sesión actualizado", marcador);
   } catch (error) {
-    console.error("Error en toggleSession:", error);
+    console.error("❌ [CONTROLLER] Error en toggleSession:", error);
     handleErrorServer(res, 500, "Error interno del servidor");
   }
 }
@@ -117,8 +129,8 @@ export async function addTime(req, res) {
       return handleErrorClient(res, 400, "ID de usuario requerido");
     }
 
-    if (!additionalMinutes || additionalMinutes <= 0) {
-      return handleErrorClient(res, 400, "Minutos adicionales debe ser mayor a 0");
+    if (additionalMinutes === undefined || additionalMinutes === 0) {
+      return handleErrorClient(res, 400, "Minutos adicionales debe ser diferente de 0");
     }
 
     if (timeRemaining === undefined || isActive === undefined || totalTime === undefined) {

@@ -149,25 +149,43 @@ class MarcadorTimeService {
     int totalTime,
   ) async {
     try {
+      print('🔵 [SERVICE] toggleSession llamado');
+      print('🔵 [SERVICE] userId: $userId');
+      print('🔵 [SERVICE] timeRemaining: $timeRemaining');
+      print('🔵 [SERVICE] isActive: $isActive');
+      print('🔵 [SERVICE] totalTime: $totalTime');
+      
       final headers = await _getHeaders();
+      final url = Uri.parse('$baseUrl/user/$userId/toggle');
+      final body = json.encode({
+        'timeRemaining': timeRemaining,
+        'isActive': isActive,
+        'totalTime': totalTime,
+      });
+      
+      print('🔵 [SERVICE] URL: $url');
+      print('🔵 [SERVICE] Body: $body');
+      
       final response = await http.patch(
-        Uri.parse('$baseUrl/user/$userId/toggle'),
+        url,
         headers: headers,
-        body: json.encode({
-          'timeRemaining': timeRemaining,
-          'isActive': isActive,
-          'totalTime': totalTime,
-        }),
+        body: body,
       );
+
+      print('🔵 [SERVICE] Response status: ${response.statusCode}');
+      print('🔵 [SERVICE] Response body: ${response.body}');
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
+        print('✅ [SERVICE] toggleSession exitoso, data: ${data['data']}');
         return data['data'];
       } else {
         final Map<String, dynamic> error = json.decode(response.body);
+        print('❌ [SERVICE] Error en toggleSession: ${error['message']}');
         throw Exception(error['message'] ?? 'Error al pausar/reanudar');
       }
     } catch (e) {
+      print('❌ [SERVICE] Excepción en toggleSession: $e');
       throw Exception('Error de conexión: $e');
     }
   }

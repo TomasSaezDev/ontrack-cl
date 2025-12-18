@@ -30,7 +30,7 @@ async function getAllMarcadores() {
         marcadorTime = marcadorTimeRepository.create({
           userId: marcador.userId,
           timeRemaining: 0,
-          totalTime: 3600, // 1 hora por defecto
+          totalTime: 0, // Empezar en 0, el admin debe agregar tiempo
           isActive: false,
           sessionStartTime: null,
           lastPauseTime: null,
@@ -80,7 +80,7 @@ async function getMarcadorByUserId(userId) {
       marcadorTime = marcadorTimeRepository.create({
         userId: userId,
         timeRemaining: 0,
-        totalTime: 3600,
+        totalTime: 0,
         isActive: false,
         sessionStartTime: null,
         lastPauseTime: null,
@@ -109,12 +109,18 @@ async function updateMarcadorTime(userId, timeData) {
   try {
     const { timeRemaining, isActive, totalTime } = timeData;
     
+    console.log('🔧 [SERVICE] updateMarcadorTime iniciado');
+    console.log('🔧 [SERVICE] userId:', userId);
+    console.log('🔧 [SERVICE] timeData:', timeData);
+    
     // Validaciones
     if (timeRemaining < 0) {
+      console.log('❌ [SERVICE] timeRemaining negativo:', timeRemaining);
       return [null, "El tiempo restante no puede ser negativo"];
     }
     
     if (totalTime < 0) {
+      console.log('❌ [SERVICE] totalTime negativo:', totalTime);
       return [null, "El tiempo total no puede ser negativo"];
     }
 
@@ -150,6 +156,9 @@ async function updateMarcadorTime(userId, timeData) {
     }
 
     // Actualizar datos de tiempo
+    console.log('🔧 [SERVICE] Estado anterior isActive:', marcadorTime.isActive);
+    console.log('🔧 [SERVICE] Nuevo estado isActive:', isActive);
+    
     marcadorTime.timeRemaining = timeRemaining;
     marcadorTime.isActive = isActive;
     marcadorTime.totalTime = totalTime;
@@ -157,15 +166,20 @@ async function updateMarcadorTime(userId, timeData) {
 
     // Manejar timestamps de sesión
     if (isActive && !marcadorTime.isActive) {
-      // Iniciando sesión
+      // Iniciando o reanudando sesión
+      console.log('▶️ [SERVICE] Iniciando/reanudando sesión');
       marcadorTime.sessionStartTime = new Date();
       marcadorTime.lastPauseTime = null;
     } else if (!isActive && marcadorTime.isActive) {
       // Pausando sesión
+      console.log('⏸️ [SERVICE] Pausando sesión');
       marcadorTime.lastPauseTime = new Date();
+      marcadorTime.sessionStartTime = null;
     }
 
+    console.log('🔧 [SERVICE] Guardando marcadorTime...');
     await marcadorTimeRepository.save(marcadorTime);
+    console.log('✅ [SERVICE] marcadorTime guardado exitosamente');
 
     // Actualizar estadísticas permanentes si se completa una sesión
     if (timeRemaining === 0 && isActive === false && totalTime > 0) {
@@ -213,11 +227,20 @@ async function toggleGameSession(userId, currentData) {
   try {
     const { timeRemaining, isActive, totalTime } = currentData;
     
+    console.log(`🔧 toggleGameSession - userId: ${userId}`);
+    console.log(`🔧 timeRemaining recibido: ${timeRemaining}`);
+    console.log(`🔧 isActive recibido (nuevo estado): ${isActive}`);
+    console.log(`🔧 totalTime recibido: ${totalTime}`);
+    
+    // El isActive recibido YA ES el nuevo estado deseado
+    // NO lo invertimos aquí porque el frontend ya lo hizo
     const timeData = {
       timeRemaining,
-      isActive: !isActive,
+      isActive, // Guardar directamente el estado recibido
       totalTime,
     };
+    
+    console.log(`🔧 timeData a guardar:`, timeData);
     
     return await updateMarcadorTime(userId, timeData);
   } catch (error) {
@@ -240,6 +263,12 @@ async function addTimeToSession(userId, additionalMinutes, currentData) {
     const newTotalTime = totalTime + additionalSeconds;
     
     console.log(`🔧 newTimeRemaining: ${newTimeRemaining}, newTotalTime: ${newTotalTime}`);
+    
+    // Validar que no se quede en valores negativos
+    if (newTimeRemaining < 0 || newTotalTime < 0) {
+      console.log('❌ [SERVICE] No se puede quitar más tiempo del disponible');
+      return [null, "No se puede quitar más tiempo del disponible"];
+    }
     
     const timeData = {
       timeRemaining: newTimeRemaining,
