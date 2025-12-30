@@ -27,7 +27,7 @@ class MarcadorTimeService {
   // Método de prueba de conexión
   static Future<bool> testConnection() async {
     try {
-      final url = Uri.parse('${baseUrl.replaceAll('/marcadores', '/marcadores/test')}');
+      final url = Uri.parse(baseUrl.replaceAll('/marcadores', '/marcadores/test'));
       print('🔍 Probando conexión a: $url');
       
       final response = await http.get(url).timeout(

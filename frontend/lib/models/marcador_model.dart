@@ -8,6 +8,11 @@ class Marcador {
   final int puntos;
   final User? user;
 
+  // New fields for time tracking
+  final int tiempoTotal;
+  final int tiempoRestante;
+  final bool estaActivo;
+
   Marcador({
     required this.id,
     required this.userId,
@@ -15,6 +20,9 @@ class Marcador {
     required this.horas,
     required this.puntos,
     this.user,
+    this.tiempoTotal = 0,
+    this.tiempoRestante = 0,
+    this.estaActivo = false,
   });
 
   factory Marcador.fromJson(Map<String, dynamic> json) {
@@ -25,6 +33,9 @@ class Marcador {
       horas: json['horas'] ?? 0,
       puntos: json['puntos'] ?? 0,
       user: json['user'] != null ? User.fromJson(json['user']) : null,
+      tiempoTotal: json['totalTime'] ?? 0,
+      tiempoRestante: json['timeRemaining'] ?? 0,
+      estaActivo: json['isActive'] ?? false,
     );
   }
 }

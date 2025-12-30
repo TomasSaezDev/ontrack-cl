@@ -82,7 +82,7 @@ class _TournamentsScreenState extends State<TournamentsScreen> {
                     decoration: const InputDecoration(
                       labelText: 'Seleccionar Usuario',
                     ),
-                    value: selectedUser,
+                    initialValue: selectedUser,
                     items: userList.map((user) {
                       return DropdownMenuItem<User>(
                         value: user,

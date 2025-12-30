@@ -20,6 +20,7 @@ class MainLayout extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.black,
       appBar: AppBar(
         title: Text(title),
         backgroundColor: Colors.transparent,

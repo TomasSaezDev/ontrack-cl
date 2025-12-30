@@ -184,7 +184,7 @@ class _UsersScreenState extends State<UsersScreen> {
                       ),
                       const SizedBox(height: 8),
                       DropdownButtonFormField<String>(
-                        value: selectedRol,
+                        initialValue: selectedRol,
                         style: const TextStyle(color: Colors.white),
                         dropdownColor: Colors.grey[850],
                         decoration: InputDecoration(
@@ -399,7 +399,7 @@ class _UsersScreenState extends State<UsersScreen> {
               child: Row(
                 children: [
                   Text(
-                    'Resultados para "${_searchQuery}": ${_filteredUsers.length}',
+                    'Resultados para "$_searchQuery": ${_filteredUsers.length}',
                     style: const TextStyle(color: Colors.grey, fontSize: 14),
                   ),
                   const Spacer(),

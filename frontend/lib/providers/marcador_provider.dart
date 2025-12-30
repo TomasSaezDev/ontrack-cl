@@ -5,7 +5,7 @@ class MarcadorProvider extends ChangeNotifier {
   List<Map<String, dynamic>> _marcadores = [];
   bool _isLoading = false;
   String? _errorMessage;
-  Map<int, int> _localTimers = {};
+  final Map<int, int> _localTimers = {};
 
   // Getters
   List<Map<String, dynamic>> get marcadores => _marcadores;

@@ -12,7 +12,7 @@ class UserDetailScreen extends StatefulWidget {
 
 class _UserDetailScreenState extends State<UserDetailScreen> {
   late Map<String, dynamic> _user;
-  bool _isLoading = false;
+  final bool _isLoading = false;
 
   @override
   void initState() {
