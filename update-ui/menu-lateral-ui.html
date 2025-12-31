@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Menú Principal</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#ff3b30", // Reddish tone suitable for racing
+                        "background-dark": "#000000",
+                        "surface-dark": "#121212",
+                        "text-light": "#FFFFFF",
+                        "text-muted": "#9ca3af"
+                    },
+                    fontFamily: {
+                        display: ["Titillium Web", "sans-serif"],
+                        body: ["Inter", "sans-serif"]
+                    },
+                }
+            }
+        };
+    </script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;900&amp;family=Inter:wght@400;500;600&amp;family=Titillium+Web:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #000000;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-black text-white min-h-screen flex overflow-hidden relative">
+<div class="relative z-20 w-full max-w-[85%] sm:max-w-[320px] h-screen flex flex-col justify-between bg-black shadow-[5px_0_30px_rgba(255,255,255,0.05)] border-r border-gray-900">
+<div class="pt-12 pb-6 px-6">
+<div class="flex items-center gap-4 mb-8">
+<div class="w-16 h-16 rounded-full bg-gray-600 flex items-center justify-center overflow-hidden border-2 border-transparent hover:border-white transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-4xl text-white">person</span>
+</div>
+</div>
+<div class="w-full h-px bg-gray-800"></div>
+</div>
+<nav class="flex-1 px-4 space-y-2 overflow-y-auto">
+<a class="flex items-center gap-4 px-4 py-3.5 rounded-xl text-white hover:bg-gray-900 transition-colors group" href="#">
+<span class="material-symbols-outlined text-[22px] group-hover:text-primary transition-colors">home</span>
+<span class="text-[15px] font-medium tracking-wide">Inicio</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3.5 rounded-xl text-white hover:bg-gray-900 transition-colors group" href="#">
+<span class="material-symbols-outlined text-[22px] group-hover:text-primary transition-colors">bar_chart</span>
+<span class="text-[15px] font-medium tracking-wide">Ranking Global</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3.5 rounded-xl text-white hover:bg-gray-900 transition-colors group" href="#">
+<span class="material-symbols-outlined text-[22px] group-hover:text-primary transition-colors">emoji_events</span>
+<span class="text-[15px] font-medium tracking-wide">Torneos</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3.5 rounded-xl text-white hover:bg-gray-900 transition-colors group" href="#">
+<span class="material-symbols-outlined text-[22px] group-hover:text-primary transition-colors">person</span>
+<span class="text-[15px] font-medium tracking-wide">Perfil</span>
+</a>
+<a class="flex items-center gap-4 px-4 py-3.5 rounded-xl text-white hover:bg-gray-900 transition-colors group" href="#">
+<span class="material-symbols-outlined text-[22px] group-hover:text-primary transition-colors">settings</span>
+<span class="text-[15px] font-medium tracking-wide">Configuración</span>
+</a>
+<div class="py-2">
+<div class="h-px bg-gray-800 mx-4"></div>
+</div>
+<a class="flex items-center gap-4 px-4 py-3.5 rounded-xl text-white hover:bg-gray-900 transition-colors group" href="#">
+<span class="material-symbols-outlined text-[22px] group-hover:text-primary transition-colors">info</span>
+<span class="text-[15px] font-medium tracking-wide">Acerca de</span>
+</a>
+</nav>
+<div class="p-6 mb-4">
+<button class="flex items-center gap-3 text-[#ff4d4d] hover:text-red-400 transition-colors w-full px-4 py-2 rounded-lg hover:bg-red-500/10">
+<span class="material-symbols-outlined text-[22px] rotate-180">logout</span>
+<span class="text-[15px] font-medium tracking-wide">Cerrar Sesión</span>
+</button>
+</div>
+</div>
+<div class="flex-1 bg-black/50 backdrop-blur-sm relative hidden sm:block">
+<div class="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-gray-800/20 via-black to-black"></div>
+</div>
+
+</body></html>
