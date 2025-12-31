@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Tabla de Posiciones</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,typography"></script>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;600;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet"/>
+<script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              primary: "#00f2ff", // Neon Blue for #1 highlight
+              "background-light": "#f3f4f6", // Light grey for light mode fallback
+              "background-dark": "#050505", // Very deep black for dark mode
+              "card-dark": "#121212", // Slightly lighter black for cards
+              "card-light": "#ffffff", // White for cards in light mode
+              "accent-bronze": "#cd7f32",
+              "accent-silver": "#c0c0c0",
+              "accent-gold": "#ffd700",
+            },
+            fontFamily: {
+              display: ["'Exo 2'", "sans-serif"],
+              body: ["'Exo 2'", "sans-serif"],
+            },
+            borderRadius: {
+              DEFAULT: "12px",
+              xl: "16px",
+              "2xl": "20px"
+            },
+          },
+        },
+      };
+    </script>
+<style>::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 4px;
+        }
+        .neon-border {
+            box-shadow: 0 0 10px rgba(0, 242, 255, 0.15), inset 0 0 10px rgba(0, 242, 255, 0.05);
+        }
+        .fade-in-up {
+            animation: fadeInUp 0.5s ease-out forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }.delay-100 { animation-delay: 100ms; }
+        .delay-200 { animation-delay: 200ms; }
+        .delay-300 { animation-delay: 300ms; }
+        .delay-400 { animation-delay: 400ms; }
+        .delay-500 { animation-delay: 500ms; }
+        .delay-600 { animation-delay: 600ms; }
+        .delay-700 { animation-delay: 700ms; }
+        .delay-800 { animation-delay: 800ms; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display antialiased min-h-screen transition-colors duration-300">
+<div class="max-w-md mx-auto min-h-screen relative flex flex-col">
+<header class="sticky top-0 z-50 px-5 py-4 flex items-center justify-between bg-background-light/90 dark:bg-background-dark/90 backdrop-blur-md border-b border-gray-200 dark:border-gray-800">
+<button class="p-2 -ml-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors text-gray-800 dark:text-white">
+<span class="material-icons-round text-3xl">menu</span>
+</button>
+<h1 class="text-lg font-bold tracking-wider text-gray-900 dark:text-white uppercase">
+                Tabla de Posiciones
+            </h1>
+<button class="p-2 -mr-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors text-gray-800 dark:text-white">
+<span class="material-icons-round text-3xl">account_circle</span>
+</button>
+</header>
+<main class="flex-1 px-4 py-6 space-y-4">
+<div class="fade-in-up relative group">
+<div class="absolute -inset-0.5 bg-primary rounded-2xl blur opacity-30 dark:opacity-40"></div>
+<div class="relative bg-card-light dark:bg-card-dark border border-primary/50 rounded-2xl p-4 shadow-lg neon-border">
+<div class="flex items-center justify-between mb-3">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 flex items-center justify-center rounded-full bg-primary/10 text-primary font-black text-xl italic">
+                                #1
+                            </div>
+<div>
+<h3 class="font-bold text-lg text-gray-900 dark:text-white leading-tight">Tomás Sáez Aguayo</h3>
+<div class="flex items-center gap-3 mt-1 text-xs text-primary font-medium">
+<span class="flex items-center gap-1">
+<span class="material-icons-round text-sm">timer</span> 2h
+                                    </span>
+<span class="flex items-center gap-1">
+<span class="material-icons-round text-sm">sports_motorsports</span> 2
+                                    </span>
+</div>
+</div>
+</div>
+</div>
+<div class="flex items-center justify-between bg-primary/5 dark:bg-primary/10 rounded-xl px-4 py-2 mt-2">
+<span class="text-xs uppercase font-bold text-primary tracking-widest">Líder</span>
+<span class="text-xl font-black text-primary">12 <span class="text-sm font-semibold">pts</span></span>
+</div>
+</div>
+</div>
+<div class="fade-in-up delay-100 bg-card-light dark:bg-card-dark border border-gray-200 dark:border-gray-800 rounded-xl p-4 shadow-sm flex items-center justify-between">
+<div class="flex items-center gap-4 overflow-hidden">
+<div class="text-2xl font-black italic text-gray-400 dark:text-gray-500 w-8 text-center shrink-0">#2</div>
+<div class="flex-1 min-w-0">
+<h3 class="font-bold text-base text-gray-800 dark:text-gray-100 truncate pr-2">Alexander Benjamín</h3>
+<div class="flex items-center gap-3 mt-1 text-xs text-gray-500 dark:text-gray-400">
+<span class="flex items-center gap-1"><span class="material-icons-round text-xs">timer</span> 0h</span>
+<span class="flex items-center gap-1"><span class="material-icons-round text-xs">sports_motorsports</span> 0</span>
+</div>
+</div>
+</div>
+<div class="bg-gray-100 dark:bg-gray-800 px-3 py-1.5 rounded-lg shrink-0">
+<span class="font-bold text-gray-700 dark:text-gray-300 text-sm">0 pts</span>
+</div>
+</div>
+<div class="fade-in-up delay-200 bg-card-light dark:bg-card-dark border border-gray-200 dark:border-gray-800 rounded-xl p-4 shadow-sm flex items-center justify-between">
+<div class="flex items-center gap-4 overflow-hidden">
+<div class="text-2xl font-black italic text-gray-400 dark:text-gray-500 w-8 text-center shrink-0">#3</div>
+<div class="flex-1 min-w-0">
+<h3 class="font-bold text-base text-gray-800 dark:text-gray-100 truncate pr-2">Pablo Andrés Castillo</h3>
+<div class="flex items-center gap-3 mt-1 text-xs text-gray-500 dark:text-gray-400">
+<span class="flex items-center gap-1"><span class="material-icons-round text-xs">timer</span> 0h</span>
+<span class="flex items-center gap-1"><span class="material-icons-round text-xs">sports_motorsports</span> 0</span>
+</div>
+</div>
+</div>
+<div class="bg-gray-100 dark:bg-gray-800 px-3 py-1.5 rounded-lg shrink-0">
+<span class="font-bold text-gray-700 dark:text-gray-300 text-sm">0 pts</span>
+</div>
+</div>
+<div class="fade-in-up delay-300 bg-card-light dark:bg-card-dark border border-gray-200 dark:border-gray-800 rounded-xl p-4 shadow-sm flex items-center justify-between opacity-90">
+<div class="flex items-center gap-4 overflow-hidden">
+<div class="text-xl font-bold italic text-gray-400/60 dark:text-gray-600 w-8 text-center shrink-0">#4</div>
+<div class="flex-1 min-w-0">
+<h3 class="font-semibold text-base text-gray-700 dark:text-gray-300 truncate pr-2">Felipe Andrés Henríquez</h3>
+<div class="flex items-center gap-3 mt-1 text-xs text-gray-500 dark:text-gray-500">
+<span class="flex items-center gap-1"><span class="material-icons-round text-xs">timer</span> 0h</span>
+<span class="flex items-center gap-1"><span class="material-icons-round text-xs">sports_motorsports</span> 0</span>
+</div>
+</div>
+</div>
+<div class="bg-gray-100 dark:bg-gray-800/50 px-3 py-1.5 rounded-lg shrink-0">
+<span class="font-bold text-gray-600 dark:text-gray-400 text-sm">0 pts</span>
+</div>
+</div>
+<div class="fade-in-up delay-400 bg-card-light dark:bg-card-dark border border-gray-200 dark:border-gray-800 rounded-xl p-4 shadow-sm flex items-center justify-between opacity-90">
+<div class="flex items-center gap-4 overflow-hidden">
+<div class="text-xl font-bold italic text-gray-400/60 dark:text-gray-600 w-8 text-center shrink-0">#5</div>
+<div class="flex-1 min-w-0">
+<h3 class="font-semibold text-base text-gray-700 dark:text-gray-300 truncate pr-2">Diego Alexis Meza</h3>
+<div class="flex items-center gap-3 mt-1 text-xs text-gray-500 dark:text-gray-500">
+<span class="flex items-center gap-1"><span class="material-icons-round text-xs">timer</span> 0h</span>
+<span class="flex items-center gap-1"><span class="material-icons-round text-xs">sports_motorsports</span> 0</span>
+</div>
+</div>
+</div>
+<div class="bg-gray-100 dark:bg-gray-800/50 px-3 py-1.5 rounded-lg shrink-0">
+<span class="font-bold text-gray-600 dark:text-gray-400 text-sm">0 pts</span>
+</div>
+</div>
+<div class="fade-in-up delay-500 bg-card-light dark:bg-card-dark border border-gray-200 dark:border-gray-800 rounded-xl p-4 shadow-sm flex items-center justify-between opacity-90">
+<div class="flex items-center gap-4 overflow-hidden">
+<div class="text-xl font-bold italic text-gray-400/60 dark:text-gray-600 w-8 text-center shrink-0">#6</div>
+<div class="flex-1 min-w-0">
+<h3 class="font-semibold text-base text-gray-700 dark:text-gray-300 truncate pr-2">Juan Pablo Rosas</h3>
+<div class="flex items-center gap-3 mt-1 text-xs text-gray-500 dark:text-gray-500">
+<span class="flex items-center gap-1"><span class="material-icons-round text-xs">timer</span> 0h</span>
+<span class="flex items-center gap-1"><span class="material-icons-round text-xs">sports_motorsports</span> 0</span>
+</div>
+</div>
+</div>
+<div class="bg-gray-100 dark:bg-gray-800/50 px-3 py-1.5 rounded-lg shrink-0">
+<span class="font-bold text-gray-600 dark:text-gray-400 text-sm">0 pts</span>
+</div>
+</div>
+<div class="fade-in-up delay-600 bg-card-light dark:bg-card-dark border border-gray-200 dark:border-gray-800 rounded-xl p-4 shadow-sm flex items-center justify-between opacity-90">
+<div class="flex items-center gap-4 overflow-hidden">
+<div class="text-xl font-bold italic text-gray-400/60 dark:text-gray-600 w-8 text-center shrink-0">#7</div>
+<div class="flex-1 min-w-0">
+<h3 class="font-semibold text-base text-gray-700 dark:text-gray-300 truncate pr-2">Diego Sebastián</h3>
+<div class="flex items-center gap-3 mt-1 text-xs text-gray-500 dark:text-gray-500">
+<span class="flex items-center gap-1"><span class="material-icons-round text-xs">timer</span> 0h</span>
+<span class="flex items-center gap-1"><span class="material-icons-round text-xs">sports_motorsports</span> 0</span>
+</div>
+</div>
+</div>
+<div class="bg-gray-100 dark:bg-gray-800/50 px-3 py-1.5 rounded-lg shrink-0">
+<span class="font-bold text-gray-600 dark:text-gray-400 text-sm">0 pts</span>
+</div>
+</div>
+<div class="fade-in-up delay-700 bg-card-light dark:bg-card-dark border border-gray-200 dark:border-gray-800 rounded-xl p-4 shadow-sm flex items-center justify-between opacity-90 mb-4">
+<div class="flex items-center gap-4 overflow-hidden">
+<div class="text-xl font-bold italic text-gray-400/60 dark:text-gray-600 w-8 text-center shrink-0">#8</div>
+<div class="flex-1 min-w-0">
+<h3 class="font-semibold text-base text-gray-700 dark:text-gray-300 truncate pr-2">Matias Gutierrez</h3>
+<div class="flex items-center gap-3 mt-1 text-xs text-gray-500 dark:text-gray-500">
+<span class="flex items-center gap-1"><span class="material-icons-round text-xs">timer</span> 0h</span>
+<span class="flex items-center gap-1"><span class="material-icons-round text-xs">sports_motorsports</span> 0</span>
+</div>
+</div>
+</div>
+<div class="bg-gray-100 dark:bg-gray-800/50 px-3 py-1.5 rounded-lg shrink-0">
+<span class="font-bold text-gray-600 dark:text-gray-400 text-sm">0 pts</span>
+</div>
+</div>
+</main>
+<div class="fixed bottom-0 left-0 right-0 h-12 bg-gradient-to-t from-background-light dark:from-background-dark to-transparent pointer-events-none z-10"></div>
+</div>
+<script>
+        // Check local storage or system preference
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark')
+        } else {
+            // For this specific design request which is heavily dark-themed, 
+            // we default to dark mode if no preference is found to match the provided screenshot context better initially.
+            // But we respect light mode toggle.
+            document.documentElement.classList.add('dark') 
+        }
+    </script>
+
+</body></html>
