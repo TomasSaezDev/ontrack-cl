@@ -93,17 +93,26 @@ class _MarcadorDetailScreenState extends State<MarcadorDetailScreen> {
         listen: false,
       );
       final userId = _marcador['userId'];
+      
+      // Obtener el marcador actualizado del provider
+      final currentMarcador = marcadorProvider.marcadores.firstWhere(
+        (m) => m['userId'] == userId,
+        orElse: () => _marcador,
+      );
+      
       final currentTime = marcadorProvider.getLocalTime(userId);
-      final isActiveNow = _marcador['isActive'] == true;
+      final isActiveNow = currentMarcador['isActive'] == true;
       final isActive = !isActiveNow; // Invertir el estado
-      final totalTime = _marcador['totalTime'] ?? 0;
+      final totalTime = currentMarcador['totalTime'] ?? 0;
 
-      print('🔵 [FRONTEND] _toggleSession iniciado');
-      print('🔵 [FRONTEND] userId: $userId');
-      print('🔵 [FRONTEND] Estado actual isActive: $isActiveNow');
-      print('🔵 [FRONTEND] Nuevo estado isActive: $isActive');
-      print('🔵 [FRONTEND] currentTime: $currentTime');
-      print('🔵 [FRONTEND] totalTime: $totalTime');
+      print('\n🔵🔵🔵 [DETAIL SCREEN] ============ TOGGLE INICIADO ============');
+      print('🔵 [DETAIL SCREEN] userId: $userId');
+      print('🔵 [DETAIL SCREEN] Estado ACTUAL isActive: $isActiveNow');
+      print('🔵 [DETAIL SCREEN] Estado NUEVO isActive: $isActive');
+      print('🔵 [DETAIL SCREEN] currentTime calculado: $currentTime');
+      print('🔵 [DETAIL SCREEN] marcador[timeRemaining]: ${currentMarcador['timeRemaining']}');
+      print('🔵 [DETAIL SCREEN] totalTime: $totalTime');
+      print('🔵 [DETAIL SCREEN] Acción: ${isActive ? "REANUDAR" : "PAUSAR"}');
 
       final success = await marcadorProvider.toggleSession(
         userId,
@@ -112,11 +121,18 @@ class _MarcadorDetailScreenState extends State<MarcadorDetailScreen> {
         totalTime,
       );
 
-      print('🔵 [FRONTEND] toggleSession resultado: $success');
+      print('🔵 [DETAIL SCREEN] toggleSession resultado: $success');
 
       if (success) {
         await _refreshMarcador();
-        print('🔵 [FRONTEND] Marcador actualizado después de toggle');
+        final updatedMarcador = marcadorProvider.marcadores.firstWhere(
+          (m) => m['userId'] == userId,
+          orElse: () => {},
+        );
+        print('🔵 [DETAIL SCREEN] Marcador después de refresh:');
+        print('🔵 [DETAIL SCREEN]   - isActive: ${updatedMarcador['isActive']}');
+        print('🔵 [DETAIL SCREEN]   - timeRemaining: ${updatedMarcador['timeRemaining']}');
+        print('🔵🔵🔵 [DETAIL SCREEN] ============ TOGGLE COMPLETADO ============\n');
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -368,15 +384,22 @@ class _MarcadorDetailScreenState extends State<MarcadorDetailScreen> {
     return Consumer<MarcadorProvider>(
       builder: (context, marcadorProvider, child) {
         final userId = _marcador['userId'];
+        
+        // Obtener el marcador actualizado del provider
+        final currentMarcador = marcadorProvider.marcadores.firstWhere(
+          (m) => m['userId'] == userId,
+          orElse: () => _marcador,
+        );
+        
         final currentTime = userId != null
             ? marcadorProvider.getLocalTime(userId)
             : 0;
-        final totalTime = _marcador['totalTime'] ?? 0;
+        final totalTime = currentMarcador['totalTime'] ?? 0;
         final progress = totalTime > 0
             ? (totalTime - currentTime) / totalTime
             : 0.0;
-        final isActive = _marcador['isActive'] == true;
-        final user = _marcador['user'] ?? _marcador;
+        final isActive = currentMarcador['isActive'] == true;
+        final user = currentMarcador['user'] ?? currentMarcador;
 
         return MainLayout(
           title: 'Detalle del Marcador',
@@ -576,12 +599,12 @@ class _MarcadorDetailScreenState extends State<MarcadorDetailScreen> {
                           children: [
                             Expanded(
                               child: ElevatedButton.icon(
-                                onPressed: _isLoading || isActive
+                                onPressed: _isLoading
                                     ? null
-                                    : _startSession,
+                                    : (isActive ? _toggleSession : (currentTime > 0 ? _toggleSession : _startSession)),
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: isActive
-                                      ? Colors.grey
+                                      ? Colors.red
                                       : Colors.green,
                                   foregroundColor: Colors.white,
                                   padding: const EdgeInsets.symmetric(
@@ -590,29 +613,8 @@ class _MarcadorDetailScreenState extends State<MarcadorDetailScreen> {
                                   disabledBackgroundColor: Colors.grey,
                                   disabledForegroundColor: Colors.white70,
                                 ),
-                                icon: const Icon(Icons.play_arrow),
-                                label: const Text('Iniciar'),
-                              ),
-                            ),
-                            const SizedBox(width: 12.0),
-                            Expanded(
-                              child: ElevatedButton.icon(
-                                onPressed: _isLoading || !isActive
-                                    ? null
-                                    : _toggleSession,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: isActive
-                                      ? Colors.red
-                                      : Colors.grey,
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 12.0,
-                                  ),
-                                  disabledBackgroundColor: Colors.grey,
-                                  disabledForegroundColor: Colors.white70,
-                                ),
-                                icon: const Icon(Icons.pause),
-                                label: const Text('Pausar'),
+                                icon: Icon(isActive ? Icons.pause : Icons.play_arrow),
+                                label: Text(isActive ? 'Pausar' : (currentTime > 0 ? 'Reanudar' : 'Iniciar')),
                               ),
                             ),
                           ],
