@@ -36,12 +36,13 @@ class MyApp extends StatelessWidget {
         title: 'Ontrack',
         theme: ThemeData(
           brightness: Brightness.dark,
-          scaffoldBackgroundColor: Colors.black,
-          primaryColor: Colors.white,
+          scaffoldBackgroundColor: const Color(0xFF000000),
+          primaryColor: const Color(0xFF00BFFF), // Electric Bright Blue
           colorScheme: const ColorScheme.dark(
-            primary: Colors.white,
-            secondary: Colors.grey,
-            surface: Colors.black,
+            primary: Color(0xFF00BFFF), // Electric Bright Blue
+            secondary: Color(0xFFA0A0A0),
+            surface: Color(0xFF121212),
+            background: Color(0xFF000000),
           ),
           useMaterial3: true,
           textTheme: const TextTheme(
@@ -54,25 +55,46 @@ class MyApp extends StatelessWidget {
           ),
           inputDecorationTheme: InputDecorationTheme(
             filled: true,
-            fillColor: Colors.grey[900],
+            fillColor: const Color(0xFF121212),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8.0),
-              borderSide: BorderSide.none,
+              borderRadius: BorderRadius.circular(16.0),
+              borderSide: const BorderSide(color: Color(0xFF00BFFF), width: 0.5),
             ),
-            hintStyle: TextStyle(color: Colors.grey[400]),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16.0),
+              borderSide: BorderSide(color: const Color(0xFF00BFFF).withOpacity(0.2), width: 0.5),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16.0),
+              borderSide: const BorderSide(color: Color(0xFF00BFFF), width: 1),
+            ),
+            hintStyle: const TextStyle(color: Color(0xFFA0A0A0)),
           ),
           elevatedButtonTheme: ElevatedButtonThemeData(
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white,
-              foregroundColor: Colors.black,
+              backgroundColor: const Color(0xFF00BFFF),
+              foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8.0),
+                borderRadius: BorderRadius.circular(16.0),
               ),
               padding: const EdgeInsets.symmetric(vertical: 16.0),
+              elevation: 0,
+              shadowColor: const Color(0xFF00BFFF).withOpacity(0.4),
             ),
           ),
           textButtonTheme: TextButtonThemeData(
-            style: TextButton.styleFrom(foregroundColor: Colors.white),
+            style: TextButton.styleFrom(foregroundColor: const Color(0xFF00BFFF)),
+          ),
+          cardTheme: CardThemeData(
+            color: const Color(0xFF121212),
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16.0),
+              side: BorderSide(
+                color: const Color(0xFF00BFFF).withOpacity(0.2),
+                width: 1,
+              ),
+            ),
           ),
         ),
         initialRoute: '/',
