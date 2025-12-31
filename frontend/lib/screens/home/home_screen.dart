@@ -14,6 +14,8 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   Timer? _timer;
+  Timer? _syncTimer;
+  int _syncCounter = 0;
 
   @override
   void initState() {
@@ -25,7 +27,7 @@ class _HomeScreenState extends State<HomeScreen> {
       final user = authProvider.user;
       if (user?.rol == 'administrador') {
         _loadMarcadores();
-        _startTimer();
+        _startTimers();
       }
     });
   }
@@ -33,6 +35,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void dispose() {
     _timer?.cancel();
+    _syncTimer?.cancel();
     super.dispose();
   }
 
@@ -41,17 +44,18 @@ class _HomeScreenState extends State<HomeScreen> {
     marcadorProvider.loadMarcadores();
   }
 
-  void _startTimer() {
+  void _startTimers() {
+    // Timer para actualizar UI cada segundo
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      // Solo notificar cambios para actualizar la UI
       final marcadorProvider = context.read<MarcadorProvider>();
-      
-      // Decrementar tiempo local para corredores activos
-      for (var player in marcadorProvider.activePlayers) {
-        final userId = player['userId'];
-        if (userId != null) {
-          marcadorProvider.decrementLocalTime(userId);
-        }
-      }
+      marcadorProvider.notifyListeners();
+    });
+    
+    // Timer para sincronizar con backend cada 10 segundos
+    _syncTimer = Timer.periodic(const Duration(seconds: 10), (timer) {
+      final marcadorProvider = context.read<MarcadorProvider>();
+      marcadorProvider.loadMarcadores();
     });
   }
 

@@ -5,13 +5,13 @@ class MarcadorProvider extends ChangeNotifier {
   List<Map<String, dynamic>> _marcadores = [];
   bool _isLoading = false;
   String? _errorMessage;
-  final Map<int, int> _localTimers = {};
+  final Map<int, DateTime> _sessionStartTimes = {};
+  final Map<int, int> _sessionStartRemaining = {};
 
   // Getters
   List<Map<String, dynamic>> get marcadores => _marcadores;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
-  Map<int, int> get localTimers => _localTimers;
 
   // Estados de sesión activa/inactiva
   List<Map<String, dynamic>> get activePlayers {
@@ -28,23 +28,32 @@ class MarcadorProvider extends ChangeNotifier {
     }).toList();
   }
 
-  // Obtener tiempo local para un usuario
+  // Obtener tiempo local para un usuario calculado en tiempo real
   int getLocalTime(int userId) {
-    return _localTimers[userId] ?? 0;
-  }
-
-  // Actualizar tiempo local
-  void updateLocalTime(int userId, int timeRemaining) {
-    _localTimers[userId] = timeRemaining;
-    notifyListeners();
-  }
-
-  // Decrementar tiempo local
-  void decrementLocalTime(int userId) {
-    if (_localTimers[userId] != null && _localTimers[userId]! > 0) {
-      _localTimers[userId] = _localTimers[userId]! - 1;
-      notifyListeners();
+    final marcador = _marcadores.firstWhere(
+      (m) => m['userId'] == userId,
+      orElse: () => {'timeRemaining': 0, 'isActive': false},
+    );
+    
+    final isActive = marcador['isActive'] == true;
+    
+    // Si no está activo, devolver el tiempo guardado
+    if (!isActive) {
+      return marcador['timeRemaining'] ?? 0;
     }
+    
+    // Si está activo, calcular tiempo transcurrido
+    final startTime = _sessionStartTimes[userId];
+    final startRemaining = _sessionStartRemaining[userId];
+    
+    if (startTime == null || startRemaining == null) {
+      return marcador['timeRemaining'] ?? 0;
+    }
+    
+    final elapsed = DateTime.now().difference(startTime).inSeconds;
+    final realTime = (startRemaining - elapsed).clamp(0, startRemaining);
+    
+    return realTime;
   }
 
   // Cargar todos los marcadores
@@ -59,13 +68,20 @@ class MarcadorProvider extends ChangeNotifier {
       print('✅ Marcadores recibidos: ${marcadores.length}');
       
       _marcadores = marcadores;
-
-      // Sincronizar timers locales con datos del servidor
+      
+      // Inicializar timestamps para marcadores activos
       for (var marcador in marcadores) {
         final userId = marcador['userId'];
+        final isActive = marcador['isActive'] == true;
         final timeRemaining = marcador['timeRemaining'] ?? 0;
-        if (userId != null) {
-          _localTimers[userId] = timeRemaining;
+        
+        if (userId != null && isActive && timeRemaining > 0) {
+          _sessionStartTimes[userId] = DateTime.now();
+          _sessionStartRemaining[userId] = timeRemaining;
+        } else if (userId != null && !isActive) {
+          // Limpiar timestamps si no está activo
+          _sessionStartTimes.remove(userId);
+          _sessionStartRemaining.remove(userId);
         }
       }
 
@@ -107,9 +123,6 @@ class MarcadorProvider extends ChangeNotifier {
         _marcadores.add(marcador);
       }
       
-      // Actualizar timer local
-      _localTimers[userId] = marcador['timeRemaining'] ?? 0;
-      
       notifyListeners();
       return marcador;
     } catch (e) {
@@ -127,8 +140,9 @@ class MarcadorProvider extends ChangeNotifier {
       // Actualizar en la lista local
       _updateMarcadorInList(updatedMarcador);
       
-      // Actualizar timer local
-      _localTimers[userId] = updatedMarcador['timeRemaining'] ?? 0;
+      // Inicializar timestamp
+      _sessionStartTimes[userId] = DateTime.now();
+      _sessionStartRemaining[userId] = updatedMarcador['timeRemaining'] ?? 0;
       
       notifyListeners();
       return true;
@@ -142,15 +156,25 @@ class MarcadorProvider extends ChangeNotifier {
   // Pausar/reanudar sesión
   Future<bool> toggleSession(int userId, int timeRemaining, bool isActive, int totalTime) async {
     try {
-      print('🟢 [PROVIDER] toggleSession llamado');
+      print('\n🟢🟢🟢 [PROVIDER] ============ TOGGLE SESSION ============');
       print('🟢 [PROVIDER] userId: $userId');
-      print('🟢 [PROVIDER] timeRemaining: $timeRemaining');
-      print('🟢 [PROVIDER] isActive: $isActive');
+      print('🟢 [PROVIDER] timeRemaining RECIBIDO del detail screen: $timeRemaining');
+      print('🟢 [PROVIDER] isActive (NUEVO estado): $isActive');
       print('🟢 [PROVIDER] totalTime: $totalTime');
+      print('🟢 [PROVIDER] Acción: ${isActive ? "REANUDAR" : "PAUSAR"}');
+      
+      // Si estamos PAUSANDO, calcular el tiempo real actual
+      // Si estamos REANUDANDO, usar el tiempo recibido (que ya está calculado al pausar)
+      final calculatedTime = getLocalTime(userId);
+      final timeToSend = !isActive ? calculatedTime : timeRemaining;
+      
+      print('🟢 [PROVIDER] getLocalTime() calculado: $calculatedTime');
+      print('🟢 [PROVIDER] Tiempo FINAL a enviar al backend: $timeToSend');
+      print('🟢 [PROVIDER] Lógica: ${!isActive ? "PAUSANDO - usar calculado" : "REANUDANDO - usar recibido"}');
       
       final updatedMarcador = await MarcadorTimeService.toggleSession(
         userId, 
-        timeRemaining, 
+        timeToSend, 
         isActive, 
         totalTime
       );
@@ -158,9 +182,31 @@ class MarcadorProvider extends ChangeNotifier {
       print('🟢 [PROVIDER] updatedMarcador recibido: $updatedMarcador');
       
       _updateMarcadorInList(updatedMarcador);
-      _localTimers[userId] = updatedMarcador['timeRemaining'] ?? 0;
       
-      print('🟢 [PROVIDER] Marcador actualizado en lista y timer local');
+      print('🟢 [PROVIDER] Backend retornó:');
+      print('🟢 [PROVIDER]   - isActive: ${updatedMarcador['isActive']}');
+      print('🟢 [PROVIDER]   - timeRemaining: ${updatedMarcador['timeRemaining']}');
+      print('🟢 [PROVIDER]   - totalTime: ${updatedMarcador['totalTime']}');
+      
+      // Manejar timestamps según el nuevo estado
+      if (isActive) {
+        // Reanudando - usar el tiempo que viene del backend (ya actualizado)
+        _sessionStartTimes[userId] = DateTime.now();
+        _sessionStartRemaining[userId] = updatedMarcador['timeRemaining'] ?? 0;
+        print('🟢 [PROVIDER] ✅ REANUDADO:');
+        print('🟢 [PROVIDER]   - Timestamp inicio: ${_sessionStartTimes[userId]}');
+        print('🟢 [PROVIDER]   - Tiempo base: ${_sessionStartRemaining[userId]}');
+      } else {
+        // Pausando - limpiar timestamps y guardar el tiempo calculado en el marcador
+        _sessionStartTimes.remove(userId);
+        _sessionStartRemaining.remove(userId);
+        print('🟢 [PROVIDER] ⏸️ PAUSADO:');
+        print('🟢 [PROVIDER]   - Tiempo guardado en marcador: ${updatedMarcador['timeRemaining']}');
+        print('🟢 [PROVIDER]   - Timestamps limpiados');
+      }
+      
+      print('🟢 [PROVIDER] Marcador actualizado en lista local');
+      print('🟢🟢🟢 [PROVIDER] ============ TOGGLE COMPLETADO ============\n');
       notifyListeners();
       return true;
     } catch (e) {
@@ -183,7 +229,12 @@ class MarcadorProvider extends ChangeNotifier {
       );
       
       _updateMarcadorInList(updatedMarcador);
-      _localTimers[userId] = updatedMarcador['timeRemaining'] ?? 0;
+      
+      // Si está activo, actualizar timestamp base
+      if (isActive) {
+        _sessionStartTimes[userId] = DateTime.now();
+        _sessionStartRemaining[userId] = updatedMarcador['timeRemaining'] ?? 0;
+      }
       
       notifyListeners();
       return true;
@@ -200,7 +251,6 @@ class MarcadorProvider extends ChangeNotifier {
       final updatedMarcador = await MarcadorTimeService.setTime(userId, totalMinutes);
       
       _updateMarcadorInList(updatedMarcador);
-      _localTimers[userId] = updatedMarcador['timeRemaining'] ?? 0;
       
       notifyListeners();
       return true;
@@ -217,7 +267,6 @@ class MarcadorProvider extends ChangeNotifier {
       final updatedMarcador = await MarcadorTimeService.resetSession(userId, totalTime);
       
       _updateMarcadorInList(updatedMarcador);
-      _localTimers[userId] = updatedMarcador['timeRemaining'] ?? 0;
       
       notifyListeners();
       return true;
@@ -234,7 +283,6 @@ class MarcadorProvider extends ChangeNotifier {
       final updatedMarcador = await MarcadorTimeService.endSession(userId, totalTime, timeUsed);
       
       _updateMarcadorInList(updatedMarcador);
-      _localTimers[userId] = updatedMarcador['timeRemaining'] ?? 0;
       
       notifyListeners();
       return true;
@@ -256,7 +304,6 @@ class MarcadorProvider extends ChangeNotifier {
       );
       
       _updateMarcadorInList(updatedMarcador);
-      _localTimers[userId] = updatedMarcador['timeRemaining'] ?? 0;
       
       notifyListeners();
       return true;

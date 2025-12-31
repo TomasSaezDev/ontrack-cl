@@ -4,6 +4,26 @@ import MarcadorTime from "../entity/marcadorTime.entity.js";
 import User from "../entity/user.entity.js";
 import { AppDataSource } from "../config/configDb.js";
 
+// Función helper para calcular tiempo restante real
+function calculateRealTimeRemaining(marcadorTime) {
+  if (!marcadorTime.isActive) {
+    // Si está pausado, devolver el tiempo guardado
+    return marcadorTime.timeRemaining;
+  }
+
+  // Si está activo, calcular el tiempo transcurrido desde que se inició
+  if (!marcadorTime.sessionStartTime) {
+    return marcadorTime.timeRemaining;
+  }
+
+  const now = new Date();
+  const sessionStart = new Date(marcadorTime.sessionStartTime);
+  const elapsedSeconds = Math.floor((now - sessionStart) / 1000);
+  const realTimeRemaining = Math.max(0, marcadorTime.timeRemaining - elapsedSeconds);
+
+  return realTimeRemaining;
+}
+
 // Obtener todos los marcadores con información de usuarios
 async function getAllMarcadores() {
   try {
@@ -40,9 +60,21 @@ async function getAllMarcadores() {
         await marcadorTimeRepository.save(marcadorTime);
       }
 
+      // Calcular tiempo real si está activo
+      const realTimeRemaining = calculateRealTimeRemaining(marcadorTime);
+
+      // Si el tiempo llegó a 0 y está activo, pausar automáticamente
+      if (realTimeRemaining === 0 && marcadorTime.isActive) {
+        marcadorTime.isActive = false;
+        marcadorTime.timeRemaining = 0;
+        marcadorTime.sessionStartTime = null;
+        marcadorTime.lastPauseTime = new Date();
+        await marcadorTimeRepository.save(marcadorTime);
+      }
+
       marcadoresConTiempo.push({
         ...marcador,
-        timeRemaining: marcadorTime.timeRemaining,
+        timeRemaining: realTimeRemaining,
         isActive: marcadorTime.isActive,
         totalTime: marcadorTime.totalTime,
       });
@@ -90,9 +122,21 @@ async function getMarcadorByUserId(userId) {
       await marcadorTimeRepository.save(marcadorTime);
     }
 
+    // Calcular tiempo real si está activo
+    const realTimeRemaining = calculateRealTimeRemaining(marcadorTime);
+
+    // Si el tiempo llegó a 0 y está activo, pausar automáticamente
+    if (realTimeRemaining === 0 && marcadorTime.isActive) {
+      marcadorTime.isActive = false;
+      marcadorTime.timeRemaining = 0;
+      marcadorTime.sessionStartTime = null;
+      marcadorTime.lastPauseTime = new Date();
+      await marcadorTimeRepository.save(marcadorTime);
+    }
+
     const marcadorConTiempo = {
       ...marcador,
-      timeRemaining: marcadorTime.timeRemaining,
+      timeRemaining: realTimeRemaining,
       isActive: marcadorTime.isActive,
       totalTime: marcadorTime.totalTime,
     };
@@ -158,28 +202,45 @@ async function updateMarcadorTime(userId, timeData) {
     // Actualizar datos de tiempo
     console.log('🔧 [SERVICE] Estado anterior isActive:', marcadorTime.isActive);
     console.log('🔧 [SERVICE] Nuevo estado isActive:', isActive);
+    console.log('🔧 [SERVICE] timeRemaining recibido:', timeRemaining);
     
-    marcadorTime.timeRemaining = timeRemaining;
+    const wasActive = marcadorTime.isActive;
+    
+    // Manejar timestamps de sesión ANTES de actualizar
+    if (isActive && !wasActive) {
+      // Iniciando o reanudando sesión
+      console.log('▶️ [SERVICE] Iniciando/reanudando sesión');
+      console.log('▶️ [SERVICE] Usando timeRemaining:', timeRemaining);
+      marcadorTime.sessionStartTime = new Date();
+      marcadorTime.lastPauseTime = null;
+      marcadorTime.timeRemaining = timeRemaining; // Usar el tiempo recibido
+    } else if (!isActive && wasActive) {
+      // Pausando sesión - usar el tiempo calculado por el frontend
+      console.log('⏸️ [SERVICE] Pausando sesión');
+      console.log('⏸️ [SERVICE] Guardando timeRemaining del frontend:', timeRemaining);
+      marcadorTime.timeRemaining = timeRemaining; // Usar el tiempo calculado del frontend
+      marcadorTime.lastPauseTime = new Date();
+      marcadorTime.sessionStartTime = null;
+    } else {
+      // Actualización sin cambio de estado
+      console.log('🔄 [SERVICE] Actualización sin cambio de estado');
+      marcadorTime.timeRemaining = timeRemaining;
+    }
+    
     marcadorTime.isActive = isActive;
     marcadorTime.totalTime = totalTime;
     marcadorTime.updatedAt = new Date();
 
-    // Manejar timestamps de sesión
-    if (isActive && !marcadorTime.isActive) {
-      // Iniciando o reanudando sesión
-      console.log('▶️ [SERVICE] Iniciando/reanudando sesión');
-      marcadorTime.sessionStartTime = new Date();
-      marcadorTime.lastPauseTime = null;
-    } else if (!isActive && marcadorTime.isActive) {
-      // Pausando sesión
-      console.log('⏸️ [SERVICE] Pausando sesión');
-      marcadorTime.lastPauseTime = new Date();
-      marcadorTime.sessionStartTime = null;
-    }
-
-    console.log('🔧 [SERVICE] Guardando marcadorTime...');
+    console.log('🔧 [SERVICE] Guardando marcadorTime en BD...');
+    console.log('🔧 [SERVICE] Datos finales a guardar:');
+    console.log('🔧 [SERVICE]   - isActive: ' + marcadorTime.isActive);
+    console.log('🔧 [SERVICE]   - timeRemaining: ' + marcadorTime.timeRemaining);
+    console.log('🔧 [SERVICE]   - totalTime: ' + marcadorTime.totalTime);
+    console.log('🔧 [SERVICE]   - sessionStartTime: ' + marcadorTime.sessionStartTime);
+    
     await marcadorTimeRepository.save(marcadorTime);
-    console.log('✅ [SERVICE] marcadorTime guardado exitosamente');
+    
+    console.log('✅ [SERVICE] marcadorTime guardado EXITOSAMENTE en BD');
 
     // Actualizar estadísticas permanentes si se completa una sesión
     if (timeRemaining === 0 && isActive === false && totalTime > 0) {
@@ -227,10 +288,12 @@ async function toggleGameSession(userId, currentData) {
   try {
     const { timeRemaining, isActive, totalTime } = currentData;
     
-    console.log(`🔧 toggleGameSession - userId: ${userId}`);
-    console.log(`🔧 timeRemaining recibido: ${timeRemaining}`);
-    console.log(`🔧 isActive recibido (nuevo estado): ${isActive}`);
-    console.log(`🔧 totalTime recibido: ${totalTime}`);
+    console.log('\n🔧🔧🔧 [BACKEND toggleGameSession] ============ RECIBIDO DEL FRONTEND ============');
+    console.log(`🔧 [BACKEND] userId: ${userId}`);
+    console.log(`🔧 [BACKEND] timeRemaining recibido: ${timeRemaining}`);
+    console.log(`🔧 [BACKEND] isActive recibido (NUEVO estado): ${isActive}`);
+    console.log(`🔧 [BACKEND] totalTime recibido: ${totalTime}`);
+    console.log(`🔧 [BACKEND] Acción: ${isActive ? 'REANUDAR' : 'PAUSAR'}`);
     
     // El isActive recibido YA ES el nuevo estado deseado
     // NO lo invertimos aquí porque el frontend ya lo hizo
@@ -240,7 +303,7 @@ async function toggleGameSession(userId, currentData) {
       totalTime,
     };
     
-    console.log(`🔧 timeData a guardar:`, timeData);
+    console.log(`🔧 [BACKEND] timeData que se pasará a updateMarcadorTime:`, timeData);
     
     return await updateMarcadorTime(userId, timeData);
   } catch (error) {
